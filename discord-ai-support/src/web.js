@@ -423,7 +423,7 @@ app.get("/", async (req, res) => {
       '<a class="btn ' + (def.key === "pro" ? "" : "alt") + '" href="/auth/discord">' + action + '</a></article>';
   }).join("");
 
-  res.send(htmlShell("AI Support", \`
+  res.send(htmlShell("AI Support", `
     <section class="hero">
       <div class="hero-grid">
         <div>
@@ -483,11 +483,11 @@ app.get("/", async (req, res) => {
     </section>
 
     <section class="section-block" id="pricing"><div class="section-head"><div><span class="pill">Precios</span><h2>Planes simples.</h2><p>Todos los límites actuales se aplican por servidor.</p></div></div>
-      <div class="grid">\${plans}</div>
+      <div class="grid">${plans}</div>
     </section>
 
     <section class="section-block"><div class="card" style="padding:28px"><div class="section-head" style="margin:0"><div><span class="pill">Ready</span><h2>Empieza en minutos.</h2><p>Conecta Discord, configura tu Knowledge Base y abre el primer ticket.</p></div><a class="btn" href="/auth/discord">Entrar con Discord</a></div></div></section>
-  \`));
+  `));
 });
 
 
@@ -813,7 +813,7 @@ app.get("/admin", async (req, res) => {
       req.query.disabled === "1" ? '<div class="notice success" style="margin-bottom:14px"><strong>✓ Código desactivado.</strong></div>' :
       req.query.disabled === "0" ? '<div class="notice" style="margin-bottom:14px;border-color:rgba(255,113,138,.2);background:rgba(255,113,138,.06);color:#ffc3cb"><strong>⚠️ No se encontró un código disponible.</strong></div>' : "";
 
-    res.send(htmlShell("Admin · AI Support", \`
+    res.send(htmlShell("Admin · AI Support", `
       <div class="admin-layout fade-in">
         <aside class="admin-sidebar">
           <div class="admin-title">✦ Admin</div>
@@ -824,11 +824,11 @@ app.get("/admin", async (req, res) => {
         </aside>
         <main class="app-main">
           <div class="page-top"><div><span class="pill">Administración segura</span><h1>Códigos de activación.</h1><p>Genera y gestiona licencias Pro y Lifetime del SaaS.</p></div><div class="dashboard-actions"><a class="btn alt btn-sm" href="/dashboard">← Dashboard</a></div></div>
-          \${notice}
+          ${notice}
           <div class="metric-grid">
-            <div class="metric-card"><div class="metric-top"><span>Códigos totales</span><span class="metric-icon">▣</span></div><div class="metric-value">\${stats.total}</div></div>
-            <div class="metric-card"><div class="metric-top"><span>Disponibles</span><span class="metric-icon">✓</span></div><div class="metric-value">\${stats.available}</div></div>
-            <div class="metric-card"><div class="metric-top"><span>Usados / caducados</span><span class="metric-icon">◈</span></div><div class="metric-value">\${stats.used + stats.disabledOrExpired}</div></div>
+            <div class="metric-card"><div class="metric-top"><span>Códigos totales</span><span class="metric-icon">▣</span></div><div class="metric-value">${stats.total}</div></div>
+            <div class="metric-card"><div class="metric-top"><span>Disponibles</span><span class="metric-icon">✓</span></div><div class="metric-value">${stats.available}</div></div>
+            <div class="metric-card"><div class="metric-top"><span>Usados / caducados</span><span class="metric-icon">◈</span></div><div class="metric-value">${stats.used + stats.disabledOrExpired}</div></div>
           </div>
 
           <section class="section-block" style="padding-bottom:0">
@@ -849,14 +849,14 @@ app.get("/admin", async (req, res) => {
             </div>
           </section>
 
-          <section class="section-block" id="activity"><div class="section-head"><div><span class="pill">Actividad</span><h2>Códigos generados.</h2><p>Los códigos completos no se vuelven a mostrar después de generarlos.</p></div></div><div class="panel-card">\${rows ? '<div class="table-wrap"><table><thead><tr><th>Código</th><th>Plan</th><th>Estado</th><th>Creado</th><th>Expira</th><th>Servidor</th></tr></thead><tbody>'+rows+'</tbody></table></div>' : '<div class="empty"><div class="feature-icon">⌁</div><h3>No hay códigos</h3><p>Genera tu primer lote.</p></div>'}</div></section>
+          <section class="section-block" id="activity"><div class="section-head"><div><span class="pill">Actividad</span><h2>Códigos generados.</h2><p>Los códigos completos no se vuelven a mostrar después de generarlos.</p></div></div><div class="panel-card">${rows ? '<div class="table-wrap"><table><thead><tr><th>Código</th><th>Plan</th><th>Estado</th><th>Creado</th><th>Expira</th><th>Servidor</th></tr></thead><tbody>'+rows+'</tbody></table></div>' : '<div class="empty"><div class="feature-icon">⌁</div><h3>No hay códigos</h3><p>Genera tu primer lote.</p></div>'}</div></section>
 
           <section class="section-block"><div class="section-head"><div><span class="pill">Seguridad</span><h2>Invalidar un código.</h2><p>Solo códigos disponibles.</p></div></div><div class="panel-card"><form method="post" action="/admin/activation-codes/disable"><div class="code-box"><input name="code" maxlength="32" autocomplete="off" placeholder="Pega aquí el código completo" required><button class="btn danger" type="submit">Desactivar</button></div></form><div class="help" style="margin-top:9px">Los códigos completos no se almacenan en texto plano.</div></div></section>
 
-          <section class="section-block" id="audit"><div class="section-head"><div><span class="pill">Auditoría</span><h2>Registro de seguridad.</h2><p>Últimas 50 acciones administrativas.</p></div></div><div class="panel-card">\${audits ? '<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Acción</th><th>Usuario</th><th>Servidor</th></tr></thead><tbody>'+audits+'</tbody></table></div>' : '<p class="muted">Sin actividad.</p>'}</div></section>
+          <section class="section-block" id="audit"><div class="section-head"><div><span class="pill">Auditoría</span><h2>Registro de seguridad.</h2><p>Últimas 50 acciones administrativas.</p></div></div><div class="panel-card">${audits ? '<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Acción</th><th>Usuario</th><th>Servidor</th></tr></thead><tbody>'+audits+'</tbody></table></div>' : '<p class="muted">Sin actividad.</p>'}</div></section>
         </main>
       </div>
-    \`, session.user));
+    `, session.user));
   } catch (error) {
     console.error("Admin dashboard error:", error);
     res.status(500).send(htmlShell("Error", '<div class="card"><h2>⚠️ Error en administración</h2><p class="error">' + escapeHtml(error.message,1000) + '</p><a class="btn alt" href="/dashboard">Volver</a></div>', (await currentSession(req))?.user || null));
@@ -883,15 +883,15 @@ app.post("/admin/activation-codes/generate", rateLimit("admin-code-generate", 10
     const downloadHref = "data:text/plain;charset=utf-8," + encodeURIComponent(codeText);
     res.setHeader("Cache-Control", "no-store, private");
 
-    res.send(htmlShell("Códigos generados", \`
-      <div class="page-top"><div><span class="pill">✓ Lote creado</span><h1>Códigos listos.</h1><p>\${codes.length} licencia(s) \${escapeHtml(getPlanDefinition(plan).name,40)} generadas. Esta es la única pantalla donde se muestran completas.</p></div><div class="dashboard-actions"><a class="btn alt btn-sm" href="/admin">← Admin</a></div></div>
+    res.send(htmlShell("Códigos generados", `
+      <div class="page-top"><div><span class="pill">✓ Lote creado</span><h1>Códigos listos.</h1><p>${codes.length} licencia(s) ${escapeHtml(getPlanDefinition(plan).name,40)} generadas. Esta es la única pantalla donde se muestran completas.</p></div><div class="dashboard-actions"><a class="btn alt btn-sm" href="/admin">← Admin</a></div></div>
       <div class="panel-card">
         <label>Códigos completos</label>
-        <textarea id="generated-codes" readonly style="min-height:330px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em">\${escapeHtml(codeText,10000)}</textarea>
-        <div class="actions" style="margin-top:14px"><button class="btn" type="button" onclick="navigator.clipboard.writeText(document.getElementById('generated-codes').value)">📋 Copiar todos</button><a class="btn alt" href="\${escapeHtml(downloadHref,20000)}" download="activation-codes-\${escapeHtml(plan,20)}.txt">⬇️ Descargar TXT</a></div>
+        <textarea id="generated-codes" readonly style="min-height:330px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em">${escapeHtml(codeText,10000)}</textarea>
+        <div class="actions" style="margin-top:14px"><button class="btn" type="button" onclick="navigator.clipboard.writeText(document.getElementById('generated-codes').value)">📋 Copiar todos</button><a class="btn alt" href="${escapeHtml(downloadHref,20000)}" download="activation-codes-${escapeHtml(plan,20)}.txt">⬇️ Descargar TXT</a></div>
         <div class="notice" style="margin-top:14px">Guárdalos ahora. Por seguridad, no volverán a aparecer completos en el panel de administración.</div>
       </div>
-    \`, session.user));
+    `, session.user));
   } catch (error) {
     console.error("Activation code generation error:", error);
     res.status(400).send(htmlShell("Error", '<div class="card"><h2>⚠️ No se pudieron generar los códigos</h2><p class="error">' + escapeHtml(error.message,1000) + '</p><a class="btn alt" href="/admin">Volver</a></div>', (await currentSession(req))?.user || null));
@@ -1007,37 +1007,37 @@ app.get("/dashboard", async (req, res) => {
       '<span class="btn btn-sm ' + (inBot ? '' : 'alt') + '">' + (inBot ? 'Abrir' : 'Añadir') + '</span></div></a>';
   }).join("");
 
-  res.send(htmlShell("Dashboard", \`
+  res.send(htmlShell("Dashboard", `
     <div class="app-shell fade-in">
       <aside class="app-sidebar">
         <div class="server-switch">
-          <div class="mini-icon">\${serverIcon ? '<img src="' + escapeHtml(serverIcon,300) + '" alt="">' : '◎'}</div>
-          <div class="name"><strong>\${escapeHtml(connectedGuild?.name || "Mi servidor",100)}</strong><span>\${connectedGuild ? "Servidor seleccionado" : "Sin servidor"}</span></div>
+          <div class="mini-icon">${serverIcon ? '<img src="' + escapeHtml(serverIcon,300) + '" alt="">' : '◎'}</div>
+          <div class="name"><strong>${escapeHtml(connectedGuild?.name || "Mi servidor",100)}</strong><span>${connectedGuild ? "Servidor seleccionado" : "Sin servidor"}</span></div>
           <span>⌄</span>
         </div>
         <div class="side-group">Workspace</div>
         <a class="side-link active" href="/dashboard"><span class="icon">⌂</span>Inicio</a>
         <a class="side-link" href="#servers"><span class="icon">◈</span>Servidores</a>
-        <a class="side-link" href="\${connectedGuild ? '/servers/' + encodeURIComponent(connectedGuild.id) + '#tickets' : '#servers'}"><span class="icon">▣</span>Tickets</a>
-        <a class="side-link" href="\${connectedGuild ? '/servers/' + encodeURIComponent(connectedGuild.id) + '#ai' : '#servers'}"><span class="icon">✦</span>IA</a>
-        <a class="side-link" href="\${connectedGuild ? '/servers/' + encodeURIComponent(connectedGuild.id) + '#knowledge' : '#servers'}"><span class="icon">▤</span>Knowledge Base</a>
-        <a class="side-link" href="\${connectedGuild ? '/servers/' + encodeURIComponent(connectedGuild.id) + '#staff' : '#servers'}"><span class="icon">♙</span>Configuración</a>
-        <a class="side-link" href="\${connectedGuild ? '/pricing?guild=' + encodeURIComponent(connectedGuild.id) : '/pricing'}"><span class="icon">◈</span>Facturación</a>
-        <a class="side-link" href="\${connectedGuild ? '/servers/' + encodeURIComponent(connectedGuild.id) + '#activation' : '#servers'}"><span class="icon">⌁</span>Código de activación</a>
+        <a class="side-link" href="${connectedGuild ? '/servers/' + encodeURIComponent(connectedGuild.id) + '#tickets' : '#servers'}"><span class="icon">▣</span>Tickets</a>
+        <a class="side-link" href="${connectedGuild ? '/servers/' + encodeURIComponent(connectedGuild.id) + '#ai' : '#servers'}"><span class="icon">✦</span>IA</a>
+        <a class="side-link" href="${connectedGuild ? '/servers/' + encodeURIComponent(connectedGuild.id) + '#knowledge' : '#servers'}"><span class="icon">▤</span>Knowledge Base</a>
+        <a class="side-link" href="${connectedGuild ? '/servers/' + encodeURIComponent(connectedGuild.id) + '#staff' : '#servers'}"><span class="icon">♙</span>Configuración</a>
+        <a class="side-link" href="${connectedGuild ? '/pricing?guild=' + encodeURIComponent(connectedGuild.id) : '/pricing'}"><span class="icon">◈</span>Facturación</a>
+        <a class="side-link" href="${connectedGuild ? '/servers/' + encodeURIComponent(connectedGuild.id) + '#activation' : '#servers'}"><span class="icon">⌁</span>Código de activación</a>
       </aside>
 
       <main class="app-main">
         <div class="page-top">
-          <div><span class="pill">Dashboard principal</span><h1>Hola, \${escapeHtml(session.user.username,80)} 👋</h1><p>Gestiona tu bot y tu soporte desde aquí.</p></div>
+          <div><span class="pill">Dashboard principal</span><h1>Hola, ${escapeHtml(session.user.username,80)} 👋</h1><p>Gestiona tu bot y tu soporte desde aquí.</p></div>
           <div class="dashboard-actions"><a class="btn btn-sm" href="/onboarding">🚀 Primeros pasos</a><a class="btn alt btn-sm" href="/pricing">Ver planes</a></div>
         </div>
 
-        \${connectedGuild ? '<div class="profile-banner"><div><strong>' + escapeHtml(connectedGuild.name,100) + '</strong><div class="help">Métricas del servidor seleccionado · datos actuales</div></div><div class="badge success">● BOT ONLINE</div></div>' : ''}
+        ${connectedGuild ? '<div class="profile-banner"><div><strong>' + escapeHtml(connectedGuild.name,100) + '</strong><div class="help">Métricas del servidor seleccionado · datos actuales</div></div><div class="badge success">● BOT ONLINE</div></div>' : ''}
 
         <div class="metric-grid">
-          <div class="metric-card"><div class="metric-top"><span>Tickets este mes</span><span class="metric-icon">▣</span></div><div class="metric-value">\${usage.ticketsCreated} <span style="font-size:13px;color:var(--muted)">/ \${definition.ticketsPerMonth}</span></div><div class="progress" style="margin-top:10px"><span style="width:\${ticketPct}%"></span></div><div class="metric-sub">\${ticketPct}% del límite actual</div></div>
-          <div class="metric-card"><div class="metric-top"><span>Respuestas IA</span><span class="metric-icon">✦</span></div><div class="metric-value">\${usage.aiResponses} <span style="font-size:13px;color:var(--muted)">/ \${definition.aiRepliesPerMonth}</span></div><div class="progress" style="margin-top:10px"><span style="width:\${aiPct}%"></span></div><div class="metric-sub">\${aiPct}% del límite actual</div></div>
-          <div class="metric-card"><div class="metric-top"><span>Plan actual</span><span class="metric-icon">♛</span></div><div class="metric-value" style="font-size:25px">\${escapeHtml(definition.name,40)}</div><div class="metric-sub">\${escapeHtml(definition.price + " · " + definition.billing,60)}</div><a class="btn btn-sm" style="margin-top:13px" href="\${connectedGuild ? '/pricing?guild=' + encodeURIComponent(connectedGuild.id) : '/pricing'}">Gestionar plan</a></div>
+          <div class="metric-card"><div class="metric-top"><span>Tickets este mes</span><span class="metric-icon">▣</span></div><div class="metric-value">${usage.ticketsCreated} <span style="font-size:13px;color:var(--muted)">/ ${definition.ticketsPerMonth}</span></div><div class="progress" style="margin-top:10px"><span style="width:${ticketPct}%"></span></div><div class="metric-sub">${ticketPct}% del límite actual</div></div>
+          <div class="metric-card"><div class="metric-top"><span>Respuestas IA</span><span class="metric-icon">✦</span></div><div class="metric-value">${usage.aiResponses} <span style="font-size:13px;color:var(--muted)">/ ${definition.aiRepliesPerMonth}</span></div><div class="progress" style="margin-top:10px"><span style="width:${aiPct}%"></span></div><div class="metric-sub">${aiPct}% del límite actual</div></div>
+          <div class="metric-card"><div class="metric-top"><span>Plan actual</span><span class="metric-icon">♛</span></div><div class="metric-value" style="font-size:25px">${escapeHtml(definition.name,40)}</div><div class="metric-sub">${escapeHtml(definition.price + " · " + definition.billing,60)}</div><a class="btn btn-sm" style="margin-top:13px" href="${connectedGuild ? '/pricing?guild=' + encodeURIComponent(connectedGuild.id) : '/pricing'}">Gestionar plan</a></div>
         </div>
 
         <section class="section-block" style="padding-bottom:0">
@@ -1045,13 +1045,13 @@ app.get("/dashboard", async (req, res) => {
             <div class="panel-card">
               <div class="section-head" style="margin-bottom:3px"><div><span class="pill">Actividad</span><h2>Actividad de tickets</h2><p>Visualización del estado actual del soporte.</p></div><span class="pill">Último ciclo</span></div>
               <div class="activity-bars">
-                <div class="activity-bar" style="height:\${Math.max(18, Math.min(86, 20 + (stats.openTickets * 7)))}%"></div>
-                <div class="activity-bar" style="height:\${Math.max(25, Math.min(91, 18 + (stats.closedTickets * 5)))}%"></div>
-                <div class="activity-bar" style="height:\${Math.max(14, Math.min(80, 16 + (stats.totalTickets * 4)))}%"></div>
-                <div class="activity-bar" style="height:\${Math.max(24, Math.min(95, 24 + (stats.totalMessages % 60)))}%"></div>
-                <div class="activity-bar" style="height:\${Math.max(20, Math.min(88, 20 + (stats.escalatedTickets * 9)))}%"></div>
-                <div class="activity-bar" style="height:\${Math.max(18, Math.min(92, 26 + (usage.ticketsCreated * 3)))}%"></div>
-                <div class="activity-bar" style="height:\${Math.max(22, Math.min(96, 28 + (usage.aiResponses % 70)))}%"></div>
+                <div class="activity-bar" style="height:${Math.max(18, Math.min(86, 20 + (stats.openTickets * 7)))}%"></div>
+                <div class="activity-bar" style="height:${Math.max(25, Math.min(91, 18 + (stats.closedTickets * 5)))}%"></div>
+                <div class="activity-bar" style="height:${Math.max(14, Math.min(80, 16 + (stats.totalTickets * 4)))}%"></div>
+                <div class="activity-bar" style="height:${Math.max(24, Math.min(95, 24 + (stats.totalMessages % 60)))}%"></div>
+                <div class="activity-bar" style="height:${Math.max(20, Math.min(88, 20 + (stats.escalatedTickets * 9)))}%"></div>
+                <div class="activity-bar" style="height:${Math.max(18, Math.min(92, 26 + (usage.ticketsCreated * 3)))}%"></div>
+                <div class="activity-bar" style="height:${Math.max(22, Math.min(96, 28 + (usage.aiResponses % 70)))}%"></div>
               </div>
               <div class="activity-axis"><span>Inicio</span><span>Actual</span></div>
             </div>
@@ -1060,20 +1060,20 @@ app.get("/dashboard", async (req, res) => {
               <div class="donut-wrap">
                 <div class="donut"></div>
                 <div class="legend">
-                  <div class="legend-row"><span><span class="legend-dot"></span>Abiertos</span><b>\${openPct}%</b></div>
-                  <div class="legend-row"><span><span class="legend-dot"></span>Cerrados</span><b>\${closedPct}%</b></div>
-                  <div class="legend-row"><span><span class="legend-dot"></span>Escalados</span><b>\${escalatedPct}%</b></div>
-                  <div class="legend-row"><span><span class="legend-dot"></span>Total</span><b>\${stats.totalTickets}</b></div>
+                  <div class="legend-row"><span><span class="legend-dot"></span>Abiertos</span><b>${openPct}%</b></div>
+                  <div class="legend-row"><span><span class="legend-dot"></span>Cerrados</span><b>${closedPct}%</b></div>
+                  <div class="legend-row"><span><span class="legend-dot"></span>Escalados</span><b>${escalatedPct}%</b></div>
+                  <div class="legend-row"><span><span class="legend-dot"></span>Total</span><b>${stats.totalTickets}</b></div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section class="section-block" id="servers"><div class="section-head"><div><span class="pill">Servidores</span><h2>Tus servidores.</h2><p>Selecciona dónde quieres trabajar.</p></div></div><div class="grid">\${serverCards || '<div class="card empty" style="grid-column:1/-1"><div class="feature-icon">☁️</div><h3>No hay servidores gestionables</h3><p>Autoriza una cuenta de Discord con permisos suficientes.</p></div>'}</div></section>
+        <section class="section-block" id="servers"><div class="section-head"><div><span class="pill">Servidores</span><h2>Tus servidores.</h2><p>Selecciona dónde quieres trabajar.</p></div></div><div class="grid">${serverCards || '<div class="card empty" style="grid-column:1/-1"><div class="feature-icon">☁️</div><h3>No hay servidores gestionables</h3><p>Autoriza una cuenta de Discord con permisos suficientes.</p></div>'}</div></section>
       </main>
     </div>
-  \`, session.user));
+  `, session.user));
 });
 
 
@@ -1121,10 +1121,10 @@ app.get("/servers/:guildId", async (req, res) => {
         (channel ? '<a class="btn ghost btn-sm" href="' + escapeHtml(channel.url,400) + '" target="_blank" rel="noopener">Discord</a>' : '—') + '</td></tr>';
     }).join("");
 
-    res.send(htmlShell("Servidor · " + guild.name, \`
+    res.send(htmlShell("Servidor · " + guild.name, `
       <div class="app-shell fade-in">
         <aside class="app-sidebar">
-          <div class="server-switch"><div class="mini-icon">\${icon ? '<img src="' + escapeHtml(icon,300) + '" alt="">' : '◎'}</div><div class="name"><strong>\${escapeHtml(guild.name,100)}</strong><span>Servidor actual</span></div><span>⌄</span></div>
+          <div class="server-switch"><div class="mini-icon">${icon ? '<img src="' + escapeHtml(icon,300) + '" alt="">' : '◎'}</div><div class="name"><strong>${escapeHtml(guild.name,100)}</strong><span>Servidor actual</span></div><span>⌄</span></div>
           <div class="side-group">Workspace</div>
           <a class="side-link" href="/dashboard"><span class="icon">⌂</span>Inicio</a>
           <a class="side-link" href="#overview"><span class="icon">◈</span>Resumen</a>
@@ -1137,25 +1137,25 @@ app.get("/servers/:guildId", async (req, res) => {
         </aside>
 
         <main class="app-main">
-          <div class="page-top"><div><span class="pill">\${icon ? '<img src="' + escapeHtml(icon,200) + '" style="width:18px;height:18px;border-radius:6px;vertical-align:-4px;margin-right:6px" alt="">' : ''}\${escapeHtml(guild.name,100)}</span><h1>Configuración.</h1><p>Personaliza el bot para este servidor y controla el soporte.</p></div><div class="dashboard-actions"><a class="btn alt btn-sm" href="/dashboard">← Dashboard</a><a class="btn btn-sm" href="/pricing?guild=\${encodeURIComponent(guild.id)}">💳 Plan</a></div></div>
-          \${savedNotice}
+          <div class="page-top"><div><span class="pill">${icon ? '<img src="' + escapeHtml(icon,200) + '" style="width:18px;height:18px;border-radius:6px;vertical-align:-4px;margin-right:6px" alt="">' : ''}${escapeHtml(guild.name,100)}</span><h1>Configuración.</h1><p>Personaliza el bot para este servidor y controla el soporte.</p></div><div class="dashboard-actions"><a class="btn alt btn-sm" href="/dashboard">← Dashboard</a><a class="btn btn-sm" href="/pricing?guild=${encodeURIComponent(guild.id)}">💳 Plan</a></div></div>
+          ${savedNotice}
 
           <section id="overview" class="section" style="scroll-margin-top:100px">
             <div class="metric-grid">
-              <div class="metric-card"><div class="metric-top"><span>Tickets totales</span><span class="metric-icon">▣</span></div><div class="metric-value">\${stats.totalTickets}</div><div class="metric-sub">\${stats.openTickets} abiertos · \${stats.closedTickets} cerrados</div></div>
-              <div class="metric-card"><div class="metric-top"><span>Respuestas IA</span><span class="metric-icon">✦</span></div><div class="metric-value">\${usage.aiResponses} <span style="font-size:12px;color:var(--muted)">/ \${definition.aiRepliesPerMonth}</span></div><div class="progress" style="margin-top:9px"><span style="width:\${aiPct}%"></span></div></div>
-              <div class="metric-card"><div class="metric-top"><span>Plan actual</span><span class="metric-icon">♛</span></div><div class="metric-value" style="font-size:25px">\${escapeHtml(definition.name,40)}</div><div class="metric-sub">\${escapeHtml(definition.price + " · " + definition.billing,60)}</div></div>
+              <div class="metric-card"><div class="metric-top"><span>Tickets totales</span><span class="metric-icon">▣</span></div><div class="metric-value">${stats.totalTickets}</div><div class="metric-sub">${stats.openTickets} abiertos · ${stats.closedTickets} cerrados</div></div>
+              <div class="metric-card"><div class="metric-top"><span>Respuestas IA</span><span class="metric-icon">✦</span></div><div class="metric-value">${usage.aiResponses} <span style="font-size:12px;color:var(--muted)">/ ${definition.aiRepliesPerMonth}</span></div><div class="progress" style="margin-top:9px"><span style="width:${aiPct}%"></span></div></div>
+              <div class="metric-card"><div class="metric-top"><span>Plan actual</span><span class="metric-icon">♛</span></div><div class="metric-value" style="font-size:25px">${escapeHtml(definition.name,40)}</div><div class="metric-sub">${escapeHtml(definition.price + " · " + definition.billing,60)}</div></div>
             </div>
           </section>
 
           <section id="tickets" class="section" style="margin-top:22px">
-            <div class="section-head"><div><span class="pill">Tickets</span><h2>Conversaciones recientes.</h2><p>Últimos 10 tickets registrados.</p></div><span class="pill">\${stats.openTickets} abiertos</span></div>
-            <div class="panel-card">\${rows ? '<div class="table-wrap"><table><thead><tr><th>Canal</th><th>Usuario</th><th>Estado</th><th>Escalado</th><th>Creado</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<div class="empty"><div class="feature-icon">▣</div><h3>No hay tickets todavía</h3><p>Abre un ticket en Discord para verlo aquí.</p></div>'}</div>
+            <div class="section-head"><div><span class="pill">Tickets</span><h2>Conversaciones recientes.</h2><p>Últimos 10 tickets registrados.</p></div><span class="pill">${stats.openTickets} abiertos</span></div>
+            <div class="panel-card">${rows ? '<div class="table-wrap"><table><thead><tr><th>Canal</th><th>Usuario</th><th>Estado</th><th>Escalado</th><th>Creado</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<div class="empty"><div class="feature-icon">▣</div><h3>No hay tickets todavía</h3><p>Abre un ticket en Discord para verlo aquí.</p></div>'}</div>
           </section>
 
           <section id="staff" class="section" style="margin-top:22px">
             <div class="section-head"><div><span class="pill">Configuración</span><h2>Personaliza tu servidor.</h2><p>La interfaz sigue la estructura del panel del mockup.</p></div></div>
-            <form method="post" action="/api/servers/\${encodeURIComponent(guild.id)}">
+            <form method="post" action="/api/servers/${encodeURIComponent(guild.id)}">
               <div class="form-section">
                 <div class="tabbar" role="tablist">
                   <button class="tab-btn active" type="button" data-tab="general">General</button>
@@ -1167,34 +1167,34 @@ app.get("/servers/:guildId", async (req, res) => {
 
                 <div class="tab-panel active" id="tab-general"><h3>General</h3><div class="sub">Resumen rápido de la configuración del bot.</div>
                   <div class="grid">
-                    <div class="card"><div class="feature-icon">◉</div><h3>Bot conectado</h3><p>\${escapeHtml(guild.name,100)} está operativo y listo para recibir tickets.</p></div>
-                    <div class="card"><div class="feature-icon">✦</div><h3>Modelo IA</h3><p>\${escapeHtml(config.aiModel,80)} · idioma automático.</p></div>
-                    <div class="card"><div class="feature-icon">📚</div><h3>Knowledge Base</h3><p>\${String(cfg.knowledge || "").length.toLocaleString("es-ES")} caracteres configurados.</p></div>
+                    <div class="card"><div class="feature-icon">◉</div><h3>Bot conectado</h3><p>${escapeHtml(guild.name,100)} está operativo y listo para recibir tickets.</p></div>
+                    <div class="card"><div class="feature-icon">✦</div><h3>Modelo IA</h3><p>${escapeHtml(config.aiModel,80)} · idioma automático.</p></div>
+                    <div class="card"><div class="feature-icon">📚</div><h3>Knowledge Base</h3><p>${String(cfg.knowledge || "").length.toLocaleString("es-ES")} caracteres configurados.</p></div>
                   </div>
                 </div>
 
                 <div class="tab-panel" id="tab-tickets-tab"><h3>Sistema de tickets</h3><div class="sub">Configura dónde se crean y quién recibe las escaladas.</div>
                   <div class="form-grid">
-                    <div class="field"><label>Categoría de tickets</label><select name="ticketCategoryId"><option value="">Sin categoría específica</option>\${categories}</select><div class="help">Los nuevos tickets se crearán dentro de esta categoría.</div></div>
-                    <div class="field"><label>Rol del staff</label><select name="staffRoleId"><option value="">Detección automática</option>\${roles}</select><div class="help">Este rol se prioriza para atención humana.</div></div>
+                    <div class="field"><label>Categoría de tickets</label><select name="ticketCategoryId"><option value="">Sin categoría específica</option>${categories}</select><div class="help">Los nuevos tickets se crearán dentro de esta categoría.</div></div>
+                    <div class="field"><label>Rol del staff</label><select name="staffRoleId"><option value="">Detección automática</option>${roles}</select><div class="help">Este rol se prioriza para atención humana.</div></div>
                   </div>
                 </div>
 
                 <div class="tab-panel" id="tab-ai-tab"><h3>Inteligencia Artificial</h3><div class="sub">Enseña al agente cómo responder en tu servidor.</div>
-                  <div class="notice">✦ <strong>Gemini \${escapeHtml(config.aiModel,80)}</strong> · El agente usa el historial persistente y la Knowledge Base como contexto prioritario.</div>
+                  <div class="notice">✦ <strong>Gemini ${escapeHtml(config.aiModel,80)}</strong> · El agente usa el historial persistente y la Knowledge Base como contexto prioritario.</div>
                   <label style="margin-top:16px">Knowledge Base</label>
-                  <textarea name="knowledge" maxlength="100000">\${escapeHtml(cfg.knowledge,100000)}</textarea>
-                  <div class="help">Límite del plan \${escapeHtml(definition.name,40)}: \${formatLimit(definition.knowledgeChars,"caracteres")}.</div>
+                  <textarea name="knowledge" maxlength="100000">${escapeHtml(cfg.knowledge,100000)}</textarea>
+                  <div class="help">Límite del plan ${escapeHtml(definition.name,40)}: ${formatLimit(definition.knowledgeChars,"caracteres")}.</div>
                 </div>
 
                 <div class="tab-panel" id="tab-messages-tab"><h3>Mensajes</h3><div class="sub">Texto que verá el usuario cuando abra un ticket.</div>
                   <label>Mensaje de bienvenida</label>
-                  <textarea name="welcomeText" style="min-height:150px">\${escapeHtml(cfg.welcomeText,1000)}</textarea>
+                  <textarea name="welcomeText" style="min-height:150px">${escapeHtml(cfg.welcomeText,1000)}</textarea>
                 </div>
 
                 <div class="tab-panel" id="tab-advanced-tab"><h3>Avanzado</h3><div class="sub">Configuración de escalado y responsable humano.</div>
                   <label>Founder ID / responsable de escaladas</label>
-                  <input name="founderId" value="\${escapeHtml(cfg.founderId,100)}" placeholder="ID de Discord">
+                  <input name="founderId" value="${escapeHtml(cfg.founderId,100)}" placeholder="ID de Discord">
                   <div class="help">Recibe los casos que requieren intervención humana.</div>
                 </div>
 
@@ -1216,17 +1216,17 @@ app.get("/servers/:guildId", async (req, res) => {
 
           <section id="ai" class="section" style="margin-top:22px">
             <div class="section-head"><div><span class="pill">IA</span><h2>Estado del agente.</h2><p>Uso, contexto y escalado humano.</p></div></div>
-            <div class="two-col"><div class="panel-card"><h3>Respuestas IA este mes</h3><div class="sub">\${usage.aiResponses.toLocaleString("es-ES")} de \${definition.aiRepliesPerMonth.toLocaleString("es-ES")}</div><div class="progress" style="margin-top:14px"><span style="width:\${aiPct}%"></span></div><div class="help">\${aiPct}% utilizado</div></div><div class="panel-card"><h3>Escalado humano</h3><div class="sub">\${stats.escalatedTickets} ticket(s) escalados</div><div class="kpi" style="margin-top:12px">\${stats.escalatedTickets}</div></div></div>
+            <div class="two-col"><div class="panel-card"><h3>Respuestas IA este mes</h3><div class="sub">${usage.aiResponses.toLocaleString("es-ES")} de ${definition.aiRepliesPerMonth.toLocaleString("es-ES")}</div><div class="progress" style="margin-top:14px"><span style="width:${aiPct}%"></span></div><div class="help">${aiPct}% utilizado</div></div><div class="panel-card"><h3>Escalado humano</h3><div class="sub">${stats.escalatedTickets} ticket(s) escalados</div><div class="kpi" style="margin-top:12px">${stats.escalatedTickets}</div></div></div>
           </section>
 
-          <section id="knowledge" class="section" style="margin-top:22px"><div class="section-head"><div><span class="pill">Knowledge Base</span><h2>La memoria del servidor.</h2><p>El contenido se edita desde la pestaña IA.</p></div><span class="badge muted">\${String(cfg.knowledge || "").length.toLocaleString("es-ES")} caracteres</span></div><div class="panel-card"><p class="muted">La IA utiliza estas reglas, FAQ y procedimientos como fuente prioritaria de contexto.</p></div></section>
+          <section id="knowledge" class="section" style="margin-top:22px"><div class="section-head"><div><span class="pill">Knowledge Base</span><h2>La memoria del servidor.</h2><p>El contenido se edita desde la pestaña IA.</p></div><span class="badge muted">${String(cfg.knowledge || "").length.toLocaleString("es-ES")} caracteres</span></div><div class="panel-card"><p class="muted">La IA utiliza estas reglas, FAQ y procedimientos como fuente prioritaria de contexto.</p></div></section>
 
-          <section id="billing" class="section" style="margin-top:22px"><div class="section-head"><div><span class="pill">Facturación</span><h2>Tu plan actual.</h2><p>Gestiona Stripe y límites desde una pantalla.</p></div></div><div class="panel-card"><div class="toolbar"><div><h3>\${escapeHtml(definition.name,40)} · \${escapeHtml(definition.price,20)}</h3><div class="sub">\${escapeHtml(definition.billing,60)} · \${formatLimit(definition.ticketsPerMonth,"tickets/mes")} · \${formatLimit(definition.aiRepliesPerMonth,"respuestas IA/mes")}</div></div><a class="btn" href="/pricing?guild=\${encodeURIComponent(guild.id)}">Gestionar plan</a></div><div class="grid" style="margin-top:15px"><div class="card"><div class="stat-label">Tickets</div><div class="kpi" style="font-size:28px">\${usage.ticketsCreated}/\${definition.ticketsPerMonth}</div><div class="progress" style="margin-top:9px"><span style="width:\${ticketPct}%"></span></div></div><div class="card"><div class="stat-label">Respuestas IA</div><div class="kpi" style="font-size:28px">\${usage.aiResponses}/\${definition.aiRepliesPerMonth}</div><div class="progress" style="margin-top:9px"><span style="width:\${aiPct}%"></span></div></div></div></div></section>
+          <section id="billing" class="section" style="margin-top:22px"><div class="section-head"><div><span class="pill">Facturación</span><h2>Tu plan actual.</h2><p>Gestiona Stripe y límites desde una pantalla.</p></div></div><div class="panel-card"><div class="toolbar"><div><h3>${escapeHtml(definition.name,40)} · ${escapeHtml(definition.price,20)}</h3><div class="sub">${escapeHtml(definition.billing,60)} · ${formatLimit(definition.ticketsPerMonth,"tickets/mes")} · ${formatLimit(definition.aiRepliesPerMonth,"respuestas IA/mes")}</div></div><a class="btn" href="/pricing?guild=${encodeURIComponent(guild.id)}">Gestionar plan</a></div><div class="grid" style="margin-top:15px"><div class="card"><div class="stat-label">Tickets</div><div class="kpi" style="font-size:28px">${usage.ticketsCreated}/${definition.ticketsPerMonth}</div><div class="progress" style="margin-top:9px"><span style="width:${ticketPct}%"></span></div></div><div class="card"><div class="stat-label">Respuestas IA</div><div class="kpi" style="font-size:28px">${usage.aiResponses}/${definition.aiRepliesPerMonth}</div><div class="progress" style="margin-top:9px"><span style="width:${aiPct}%"></span></div></div></div></div></section>
 
-          <section id="activation" class="section" style="margin-top:22px"><div class="section-head"><div><span class="pill">Licencia</span><h2>Código de activación.</h2><p>Activa Pro o Lifetime sin pasar por Checkout.</p></div></div><div class="panel-card">\${activationNotice}<form method="post" action="/api/servers/\${encodeURIComponent(guild.id)}/activation-code"><div class="code-box"><input name="code" maxlength="32" autocomplete="off" placeholder="PRO-ABCD-EFGH o LIFE-ABCD-EFGH" required><button class="btn" type="submit">🔐 Activar</button></div></form><div class="help" style="margin-top:9px">Cada código es de un solo uso y queda asociado a este servidor.</div></div></section>
+          <section id="activation" class="section" style="margin-top:22px"><div class="section-head"><div><span class="pill">Licencia</span><h2>Código de activación.</h2><p>Activa Pro o Lifetime sin pasar por Checkout.</p></div></div><div class="panel-card">${activationNotice}<form method="post" action="/api/servers/${encodeURIComponent(guild.id)}/activation-code"><div class="code-box"><input name="code" maxlength="32" autocomplete="off" placeholder="PRO-ABCD-EFGH o LIFE-ABCD-EFGH" required><button class="btn" type="submit">🔐 Activar</button></div></form><div class="help" style="margin-top:9px">Cada código es de un solo uso y queda asociado a este servidor.</div></div></section>
         </main>
       </div>
-    \`, session.user));
+    `, session.user));
   } catch (error) {
     console.error("Dashboard server error:", error);
     res.status(500).send(htmlShell("Error", '<div class="card"><h2>⚠️ No se pudo cargar el servidor</h2><p class="error">' + escapeHtml(error.message,1000) + '</p><a class="btn alt" href="/dashboard">Volver</a></div>'));
