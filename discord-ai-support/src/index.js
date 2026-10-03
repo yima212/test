@@ -446,7 +446,29 @@ client.on("messageCreate", async message => {
   };
   sessions.set(message.channel.id, session);
 
-  session.history.push({ role: "user", content: message.content });
+  const mentionedAgent = message.mentions.has(client.user.id);
+  const cleanContent = message.content
+    .replace(new RegExp("<@!?"+client.user.id+">", "g"), "")
+    .trim();
+
+  // Mencionar al agente vuelve a activar la conversación del ticket.
+  if (mentionedAgent) {
+    session.escalated = false;
+
+    if (!cleanContent) {
+      session.history.push({
+        role: "user",
+        content: "[El usuario volvió a mencionar al agente para continuar la conversación.]"
+      });
+
+      await message.channel.send(
+        "👋 Aquí estoy de nuevo. Cuéntame qué necesitas y seguimos con tu ticket."
+      );
+      return;
+    }
+  }
+
+  session.history.push({ role: "user", content: cleanContent || message.content });
 
   if (session.escalated) return;
 
