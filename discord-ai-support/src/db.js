@@ -41,7 +41,40 @@ async function initDatabase() {
     )
   `);
 
-  console.log("✅ PostgreSQL conectado y tabla guild_configs lista.");
+  await p.query(`
+    CREATE TABLE IF NOT EXISTS tickets (
+      channel_id TEXT PRIMARY KEY,
+      guild_id TEXT NOT NULL,
+      owner_id TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'closed')),
+      escalated BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      closed_at TIMESTAMPTZ
+    )
+  `);
+
+  await p.query(`
+    CREATE INDEX IF NOT EXISTS idx_tickets_guild_status
+    ON tickets (guild_id, status)
+  `);
+
+  await p.query(`
+    CREATE TABLE IF NOT EXISTS ticket_messages (
+      id BIGSERIAL PRIMARY KEY,
+      channel_id TEXT NOT NULL REFERENCES tickets(channel_id) ON DELETE CASCADE,
+      role TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
+      content TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await p.query(`
+    CREATE INDEX IF NOT EXISTS idx_ticket_messages_channel
+    ON ticket_messages (channel_id, created_at)
+  `);
+
+  console.log("✅ PostgreSQL conectado: configuración, tickets e historial persistente listos.");
+
 }
 
 async function getGuildConfig(guildId) {
@@ -92,9 +125,87 @@ async function saveGuildConfig(guildId, cfg) {
   return cfg;
 }
 
+async function createTicket({ channelId, guildId, ownerId }) {
+  await getPool().query(
+    `INSERT INTO tickets (channel_id, guild_id, owner_id, status, escalated)
+     VALUES ($1, $2, $3, 'open', FALSE)
+     ON CONFLICT (channel_id) DO NOTHING`,
+    [channelId, guildId, ownerId]
+  );
+}
+
+async function addTicketMessage(channelId, role, content) {
+  await getPool().query(
+    `INSERT INTO ticket_messages (channel_id, role, content)
+     SELECT $1, $2, $3
+     WHERE EXISTS (
+       SELECT 1 FROM tickets WHERE channel_id = $1
+     )`,
+    [channelId, role, content]
+  );
+}
+
+async function setTicketEscalated(channelId, escalated) {
+  await getPool().query(
+    "UPDATE tickets SET escalated = $2 WHERE channel_id = $1",
+    [channelId, escalated]
+  );
+}
+
+async function closeTicket(channelId) {
+  await getPool().query(
+    `UPDATE tickets
+     SET status = 'closed', closed_at = NOW()
+     WHERE channel_id = $1`,
+    [channelId]
+  );
+}
+
+async function loadOpenTickets() {
+  const result = await getPool().query(
+    `SELECT
+       t.channel_id,
+       t.guild_id,
+       t.owner_id,
+       t.escalated,
+       COALESCE(
+         json_agg(
+           json_build_object(
+             'role', tm.role,
+             'content', tm.content,
+             'createdAt', tm.created_at
+           )
+           ORDER BY tm.created_at ASC
+         ) FILTER (WHERE tm.id IS NOT NULL),
+         '[]'::json
+       ) AS history
+     FROM tickets t
+     LEFT JOIN ticket_messages tm ON tm.channel_id = t.channel_id
+     WHERE t.status = 'open'
+     GROUP BY t.channel_id, t.guild_id, t.owner_id, t.escalated
+     ORDER BY t.created_at ASC`
+  );
+
+  return result.rows.map(row => ({
+    channelId: row.channel_id,
+    guildId: row.guild_id,
+    ownerId: row.owner_id,
+    escalated: Boolean(row.escalated),
+    history: Array.isArray(row.history) ? row.history.map(item => ({
+      role: item.role,
+      content: item.content
+    })) : []
+  }));
+}
+
 module.exports = {
   getPool,
   initDatabase,
   getGuildConfig,
-  saveGuildConfig
+  saveGuildConfig,
+  createTicket,
+  addTicketMessage,
+  setTicketEscalated,
+  closeTicket,
+  loadOpenTickets
 };
