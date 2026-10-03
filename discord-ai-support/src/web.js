@@ -236,31 +236,31 @@ function activationReasonMessage(reason) {
 function htmlShell(title, body, user = null) {
   const avatar = discordUserAvatarUrl(user);
   const nav = user
-    ? \`<div class="nav-actions">
+    ? `<div class="nav-actions">
         <a class="nav-link" href="/dashboard">Dashboard</a>
         <a class="nav-link" href="/pricing">Planes</a>
         <a class="nav-link nav-primary" href="/onboarding">Primeros pasos</a>
-        \${isFounder({ user }) ? '<a class="nav-link" href="/admin">Admin</a>' : ''}
+        ${isFounder({ user }) ? '<a class="nav-link" href="/admin">Admin</a>' : ''}
         <div class="profile-chip">
-          \${avatar ? '<img src="' + escapeHtml(avatar, 300) + '" alt="">' : '<span class="profile-fallback">' + escapeHtml((user.username || "?").slice(0,1).toUpperCase(),1) + '</span>'}
-          <span>\${escapeHtml(user.username, 80)}</span>
+          ${avatar ? '<img src="' + escapeHtml(avatar, 300) + '" alt="">' : '<span class="profile-fallback">' + escapeHtml((user.username || "?").slice(0,1).toUpperCase(),1) + '</span>'}
+          <span>${escapeHtml(user.username, 80)}</span>
         </div>
         <a class="nav-link danger-link" href="/logout">Salir</a>
-      </div>\`
-    : \`<div class="nav-actions">
+      </div>`
+    : `<div class="nav-actions">
         <a class="nav-link" href="#features">Funciones</a>
         <a class="nav-link" href="#pricing">Precios</a>
         <a class="nav-link" href="/onboarding">Cómo funciona</a>
         <a class="btn btn-sm" href="/auth/discord">Entrar con Discord</a>
-      </div>\`;
+      </div>`;
 
-  return \`<!doctype html>
+  return `<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#090912">
-<title>\${escapeHtml(title, 120)} · AI Support</title>
+<title>${escapeHtml(title, 120)} · AI Support</title>
 <style>
 :root{color-scheme:dark;--bg:#07070b;--panel:#10101a;--panel2:#151522;--line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.15);--text:#f7f7fb;--muted:#9da0b4;--muted2:#74778b;--brand:#6d5dfc;--brand2:#8e82ff;--cyan:#44d8ff;--success:#39d98a;--warning:#ffbf5f;--danger:#ff718a;--shadow:0 24px 90px rgba(0,0,0,.42);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--text);min-height:100vh;background:radial-gradient(circle at 10% -10%,rgba(109,93,252,.20),transparent 28%),radial-gradient(circle at 92% 4%,rgba(68,216,255,.12),transparent 24%),radial-gradient(circle at 50% 60%,rgba(109,93,252,.06),transparent 32%),var(--bg)}body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:40px 40px;mask-image:linear-gradient(to bottom,black,transparent 75%)}a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}.wrap{max-width:1240px;margin:0 auto;padding:0 24px 28px}
@@ -276,12 +276,12 @@ function htmlShell(title, body, user = null) {
 </head>
 <body><div class="wrap">
 <header class="site-nav"><div class="nav-inner">
-<a class="brand" href="\${user ? "/dashboard" : "/"}"><span class="brand-mark">✦</span><span class="brand-copy"><strong>AI SUPPORT</strong><span>Discord automation</span></span></a>
-\${nav}
+<a class="brand" href="${user ? "/dashboard" : "/"}"><span class="brand-mark">✦</span><span class="brand-copy"><strong>AI SUPPORT</strong><span>Discord automation</span></span></a>
+${nav}
 </div></header>
-\${body}
+${body}
 <footer class="footer"><div class="footer-inner"><span>AI Support · Discord SaaS</span><div class="footer-links"><a href="/terms">Términos</a><a href="/privacy">Privacidad</a><a href="/onboarding">Cómo funciona</a><a href="/auth/discord">Acceso Discord</a></div></div></footer>
-</div></body></html>\`;
+</div></body></html>`;
 }
 
 app.get("/health", (_req, res) => {
@@ -397,7 +397,7 @@ app.get("/", async (req, res) => {
     '</article>';
   }).join("");
 
-  res.send(htmlShell("AI Support", \`
+  res.send(htmlShell("AI Support", `
     <section class="hero"><div class="hero-grid">
       <div>
         <div class="eyebrow"><span class="eyebrow-dot"></span>Soporte inteligente para Discord</div>
@@ -441,36 +441,36 @@ app.get("/", async (req, res) => {
       </div>
     </section>
 
-    <section class="section-block" id="pricing"><div class="section-head"><div><span class="pill">Precios</span><h2>Escala por servidor.</h2><p>Los límites actuales se aplican a cada servidor de Discord.</p></div><a class="btn alt btn-sm" href="/auth/discord">Abrir panel</a></div><div class="grid">\${publicPlans}</div></section>
+    <section class="section-block" id="pricing"><div class="section-head"><div><span class="pill">Precios</span><h2>Escala por servidor.</h2><p>Los límites actuales se aplican a cada servidor de Discord.</p></div><a class="btn alt btn-sm" href="/auth/discord">Abrir panel</a></div><div class="grid">${publicPlans}</div></section>
 
     <section class="section-block"><div class="card" style="padding:28px"><div class="section-head" style="margin:0"><div><span class="pill">Listo para probar</span><h2>Tu siguiente ticket puede atenderse solo.</h2><p>Conecta Discord y termina la configuración desde el dashboard.</p></div><a class="btn" href="/auth/discord">🚀 Entrar con Discord</a></div></div></section>
-  \`));
+  `));
 });
 
 
 app.get("/onboarding", async (req, res) => {
   const session = await currentSession(req);
-  if (!session) return res.send(htmlShell("Cómo funciona", \`
+  if (!session) return res.send(htmlShell("Cómo funciona", `
     <div class="legal"><span class="pill">Primeros pasos</span><h1>Configura AI Support en 3 pasos.</h1><p>Conecta tu servidor, carga tus reglas y prueba el primer ticket desde el dashboard.</p>
       <div class="grid" style="margin-top:26px"><div class="card step-card"><div class="step-number">01</div><h3>Inicia sesión</h3><p>Autoriza AI Support con tu cuenta de Discord.</p></div><div class="card step-card"><div class="step-number">02</div><h3>Añade el bot</h3><p>Elige el servidor y añade AI Support con los permisos necesarios.</p></div><div class="card step-card"><div class="step-number">03</div><h3>Configura y prueba</h3><p>Define Knowledge Base, staff, categoría y abre un ticket de prueba.</p></div></div>
       <div class="hero-actions"><a class="btn" href="/auth/discord">Empezar con Discord</a><a class="btn alt" href="/terms">Términos</a></div>
     </div>
-  \`));
+  `));
 
   const first = session.guilds[0];
   const firstLink = first ? (client.guilds.cache.has(first.id) ? "/servers/" + encodeURIComponent(first.id) : "/servers/" + encodeURIComponent(first.id) + "/install") : "/dashboard";
   const firstLabel = first ? (client.guilds.cache.has(first.id) ? "Abrir configuración" : "Añadir bot") : "Ver servidores";
 
-  res.send(htmlShell("Primeros pasos", \`
-    <div class="dashboard-hero"><div><span class="pill">Onboarding</span><h1>Vamos a dejar tu servidor listo.</h1><p>Comprueba los tres pilares de una instalación limpia.</p></div><div class="dashboard-actions"><a class="btn" href="\${firstLink}">\${firstLabel}</a></div></div>
+  res.send(htmlShell("Primeros pasos", `
+    <div class="dashboard-hero"><div><span class="pill">Onboarding</span><h1>Vamos a dejar tu servidor listo.</h1><p>Comprueba los tres pilares de una instalación limpia.</p></div><div class="dashboard-actions"><a class="btn" href="${firstLink}">${firstLabel}</a></div></div>
     <div class="grid"><div class="card step-card"><div class="step-number">01 · Cuenta</div><h3>Discord conectado</h3><p>Tu sesión está activa y puede gestionar los servidores permitidos.</p><div class="badge success" style="margin-top:14px">✓ Listo</div></div>
-      <div class="card step-card"><div class="step-number">02 · Servidor</div><h3>\${escapeHtml(first?.name || "Elige un servidor",100)}</h3><p>\${first ? (client.guilds.cache.has(first.id) ? "El bot ya está conectado en este servidor." : "El bot todavía no está instalado en este servidor.") : "No hay servidores gestionables en esta cuenta."}</p></div>
+      <div class="card step-card"><div class="step-number">02 · Servidor</div><h3>${escapeHtml(first?.name || "Elige un servidor",100)}</h3><p>${first ? (client.guilds.cache.has(first.id) ? "El bot ya está conectado en este servidor." : "El bot todavía no está instalado en este servidor.") : "No hay servidores gestionables en esta cuenta."}</p></div>
       <div class="card step-card"><div class="step-number">03 · Knowledge Base</div><h3>Enseña a la IA tus reglas</h3><p>Añade normas, FAQ, procedimientos y otra documentación propia de tu comunidad.</p></div></div>
     <div class="card" style="margin-top:18px"><div class="notice"><strong>Prueba recomendada:</strong> guarda la configuración y abre un ticket de prueba antes de compartir el bot con toda la comunidad.</div></div>
-  \`, session.user));
+  `, session.user));
 });
 
-app.get("/terms", (_req, res) => res.send(htmlShell("Términos de servicio", \`
+app.get("/terms", (_req, res) => res.send(htmlShell("Términos de servicio", `
   <main class="legal"><span class="pill">Información legal</span><h1>Términos de servicio</h1><p>Última actualización: octubre de 2026</p>
   <h2>1. Servicio</h2><p>AI Support es una aplicación de automatización para comunidades de Discord que proporciona tickets privados, asistencia mediante IA, configuración por servidor y escalado a personal humano.</p>
   <h2>2. Cuenta y permisos</h2><p>Debes utilizar una cuenta de Discord con permisos suficientes para gestionar el servidor correspondiente. Eres responsable de mantener seguras tus credenciales y de revisar las autorizaciones que otorgas.</p>
@@ -481,9 +481,9 @@ app.get("/terms", (_req, res) => res.send(htmlShell("Términos de servicio", \`
   <h2>7. Cambios</h2><p>Las condiciones pueden actualizarse para reflejar cambios del producto, obligaciones legales o mejoras operativas.</p>
   <h2>8. Información del titular</h2><p>Antes de publicar estas condiciones como documento legal definitivo, completa aquí los datos legales de la entidad titular, domicilio y canal de contacto.</p>
   </main>
-\`)));
+`)));
 
-app.get("/privacy", (_req, res) => res.send(htmlShell("Política de privacidad", \`
+app.get("/privacy", (_req, res) => res.send(htmlShell("Política de privacidad", `
   <main class="legal"><span class="pill">Privacidad</span><h1>Política de privacidad</h1><p>Última actualización: octubre de 2026</p>
   <h2>1. Datos tratados</h2><p>La aplicación puede tratar identificadores de Discord, nombre de usuario, servidores autorizables, configuración del servidor, tickets y métricas de uso necesarias para prestar el servicio.</p>
   <h2>2. Finalidades</h2><p>Los datos se utilizan para autenticar administradores, gestionar la configuración por servidor, mantener el historial de tickets, aplicar límites, procesar pagos cuando corresponda y mantener la seguridad.</p>
@@ -492,7 +492,7 @@ app.get("/privacy", (_req, res) => res.send(htmlShell("Política de privacidad",
   <h2>5. Seguridad</h2><p>La aplicación utiliza controles de sesión, cookies seguras, validación de origen, limitación de solicitudes y auditoría de acciones administrativas.</p>
   <h2>6. Derechos</h2><p>Antes de publicar esta política como documento legal definitivo, completa los datos del responsable del tratamiento, la base jurídica y el canal para ejercer derechos.</p>
   </main>
-\`)));
+`)));
 
 
 app.get("/pricing", async (req, res) => {
@@ -510,10 +510,10 @@ app.get("/pricing", async (req, res) => {
         '<a class="btn btn-sm" href="/pricing?guild=' + encodeURIComponent(guild.id) + '">Ver planes</a></div></article>';
     }).join("");
 
-    return res.send(htmlShell("Planes", \`
+    return res.send(htmlShell("Planes", `
       <div class="dashboard-hero"><div><span class="pill">Facturación</span><h1>Selecciona un servidor.</h1><p>Los planes se contratan por servidor de Discord, no por cuenta global.</p></div></div>
-      <div class="grid">\${serverLinks || '<div class="card empty" style="grid-column:1/-1"><div class="feature-icon">◈</div><h3>No hay servidores gestionables</h3><p>Conecta una cuenta con permisos de administración.</p></div>'}</div>
-    \`, session.user));
+      <div class="grid">${serverLinks || '<div class="card empty" style="grid-column:1/-1"><div class="feature-icon">◈</div><h3>No hay servidores gestionables</h3><p>Conecta una cuenta con permisos de administración.</p></div>'}</div>
+    `, session.user));
   }
 
   const guild = session.guilds.find(g => g.id === guildId);
@@ -553,14 +553,14 @@ app.get("/pricing", async (req, res) => {
       '<div class="actions" style="margin-top:auto">' + action + '</div></article>';
   }).join("");
 
-  res.send(htmlShell("Planes", \`
-    <div class="dashboard-hero"><div><span class="pill">Facturación · \${escapeHtml(guild.name,100)}</span><h1>Elige tu plan.</h1><p>Los límites de uso y la facturación se aplican por servidor. Stripe gestiona los pagos.</p></div>
-      <div class="dashboard-actions">\${portalButton}<a class="btn alt" href="/servers/\${encodeURIComponent(guild.id)}">← Panel</a></div>
+  res.send(htmlShell("Planes", `
+    <div class="dashboard-hero"><div><span class="pill">Facturación · ${escapeHtml(guild.name,100)}</span><h1>Elige tu plan.</h1><p>Los límites de uso y la facturación se aplican por servidor. Stripe gestiona los pagos.</p></div>
+      <div class="dashboard-actions">${portalButton}<a class="btn alt" href="/servers/${encodeURIComponent(guild.id)}">← Panel</a></div>
     </div>
-    <div class="card" style="margin-bottom:18px"><div class="toolbar"><div><span class="muted">Plan actual</span><div style="margin-top:5px;font-weight:900;font-size:18px">\${escapeHtml(currentPlan.name,40)}</div></div><div>\${currentPlanBlock}</div></div></div>
-    <div class="grid">\${planCards}</div>
+    <div class="card" style="margin-bottom:18px"><div class="toolbar"><div><span class="muted">Plan actual</span><div style="margin-top:5px;font-weight:900;font-size:18px">${escapeHtml(currentPlan.name,40)}</div></div><div>${currentPlanBlock}</div></div></div>
+    <div class="grid">${planCards}</div>
     <div class="card" style="margin-top:18px"><div class="notice"><strong>Uso mensual:</strong> Lifetime no tiene renovación mensual, pero mantiene límites mensuales para proteger la estabilidad del servicio.</div></div>
-  \`, session.user));
+  `, session.user));
 });
 
 
@@ -1024,19 +1024,19 @@ app.get("/dashboard", async (req, res) => {
   const cards = session.guilds.map(guild => {
     const botIn = Boolean(client.guilds.cache.get(guild.id));
     const icon = discordIconUrl(guild);
-    return \`<article class="card"><div class="server-card">
-      <div class="server-icon">\${icon ? '<img src="' + escapeHtml(icon,300) + '" alt="">' : '◎'}</div>
-      <div class="server-meta"><div class="server-name">\${escapeHtml(guild.name,100)}</div><div class="status"><span class="status-dot \${botIn ? "online" : "offline"}"></span>\${botIn ? "Bot conectado" : "Bot no instalado"}</div></div>
-      <a class="btn btn-sm \${botIn ? "" : "alt"}" href="\${botIn ? "/servers/" + encodeURIComponent(guild.id) : "/servers/" + encodeURIComponent(guild.id) + "/install"}">\${botIn ? "Abrir panel" : "Añadir bot"}</a>
-    </div></article>\`;
+    return `<article class="card"><div class="server-card">
+      <div class="server-icon">${icon ? '<img src="' + escapeHtml(icon,300) + '" alt="">' : '◎'}</div>
+      <div class="server-meta"><div class="server-name">${escapeHtml(guild.name,100)}</div><div class="status"><span class="status-dot ${botIn ? "online" : "offline"}"></span>${botIn ? "Bot conectado" : "Bot no instalado"}</div></div>
+      <a class="btn btn-sm ${botIn ? "" : "alt"}" href="${botIn ? "/servers/" + encodeURIComponent(guild.id) : "/servers/" + encodeURIComponent(guild.id) + "/install"}">${botIn ? "Abrir panel" : "Añadir bot"}</a>
+    </div></article>`;
   }).join("");
 
-  res.send(htmlShell("Dashboard", \`
-    <div class="dashboard-hero"><div><span class="pill">Panel de control</span><h1>Hola, \${escapeHtml(session.user.username,80)} 👋</h1><p>Gestiona tus servidores, supervisa el uso y ajusta el comportamiento del soporte desde un solo lugar.</p></div><div class="dashboard-actions"><a class="btn" href="/onboarding">🚀 Primeros pasos</a><a class="btn alt" href="/pricing">💳 Planes</a></div></div>
-    <div class="grid-4"><div class="card"><div class="kpi">\${total}</div><div class="stat-label">Servidores gestionables</div></div><div class="card"><div class="kpi">\${connected}</div><div class="stat-label">Con bot conectado</div></div><div class="card"><div class="kpi">\${Math.max(0,total-connected)}</div><div class="stat-label">Pendientes de instalar</div></div><div class="card"><div class="kpi">24/7</div><div class="stat-label">Automatización activa</div></div></div>
-    <section class="section-block" style="padding-bottom:0"><div class="section-head"><div><span class="pill">Mis servidores</span><h2>Selecciona dónde trabajar.</h2><p>Cada servidor mantiene su configuración, uso y Knowledge Base.</p></div></div><div class="grid">\${cards || '<div class="card empty" style="grid-column:1/-1"><div class="feature-icon">☁️</div><h3>No hay servidores disponibles</h3><p>Conecta una cuenta de Discord que administre al menos un servidor.</p></div>'}</div></section>
+  res.send(htmlShell("Dashboard", `
+    <div class="dashboard-hero"><div><span class="pill">Panel de control</span><h1>Hola, ${escapeHtml(session.user.username,80)} 👋</h1><p>Gestiona tus servidores, supervisa el uso y ajusta el comportamiento del soporte desde un solo lugar.</p></div><div class="dashboard-actions"><a class="btn" href="/onboarding">🚀 Primeros pasos</a><a class="btn alt" href="/pricing">💳 Planes</a></div></div>
+    <div class="grid-4"><div class="card"><div class="kpi">${total}</div><div class="stat-label">Servidores gestionables</div></div><div class="card"><div class="kpi">${connected}</div><div class="stat-label">Con bot conectado</div></div><div class="card"><div class="kpi">${Math.max(0,total-connected)}</div><div class="stat-label">Pendientes de instalar</div></div><div class="card"><div class="kpi">24/7</div><div class="stat-label">Automatización activa</div></div></div>
+    <section class="section-block" style="padding-bottom:0"><div class="section-head"><div><span class="pill">Mis servidores</span><h2>Selecciona dónde trabajar.</h2><p>Cada servidor mantiene su configuración, uso y Knowledge Base.</p></div></div><div class="grid">${cards || '<div class="card empty" style="grid-column:1/-1"><div class="feature-icon">☁️</div><h3>No hay servidores disponibles</h3><p>Conecta una cuenta de Discord que administre al menos un servidor.</p></div>'}</div></section>
     <section class="section-block"><div class="card"><div class="toolbar"><div><span class="pill">Arquitectura por servidor</span><h3 style="margin-top:10px">Un panel. Un contexto.</h3><p>Los tickets, la IA y las reglas permanecen separados por servidor.</p></div><a class="btn alt" href="/onboarding">Ver guía</a></div></div></section>
-  \`, session.user));
+  `, session.user));
 });
 
 
