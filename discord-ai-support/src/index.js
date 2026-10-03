@@ -15,7 +15,7 @@ const {
 
 const config = require("./config");
 const { answerWithAI, shouldEscalate } = require("./ai");
-const { startDashboard } = require("./web");
+const { startDashboard, getGuildConfig } = require("./web");
 
 const client = new Client({
   intents: [
@@ -116,10 +116,10 @@ function textLooksLikeHumanContactRequest(text) {
     /\b(?:conecta(?:me)?|ponerme\s+en\s+contacto)\b.*\b(?:staff|moderador|moderadora|moderator|admin|soporte)\b/i.test(text);
 }
 
-async function findStaffMember(guild) {
-  if (config.staffRoleId) {
-    const role = guild.roles.cache.get(config.staffRoleId);
-    const member = role?.members.find(m => !m.user.bot && hasStaffRole(m));
+async function findStaffMember(guild, guildConfig) {
+  if (guildConfig.staffRoleId) {
+    const role = guild.roles.cache.get(guildConfig.staffRoleId);
+    const member = role?.members.find(m => !m.user.bot);
     if (member) return member;
   }
 
@@ -154,6 +154,7 @@ async function notifyStaffMember({ member, channel, session, requestedBy }) {
 
 async function handleDirectRequest(message, session) {
   const text = message.content.trim();
+  const guildConfig = getGuildConfig(message.guild.id);
 
   if (textLooksLikeTimeQuestion(text)) {
     await message.channel.send(
@@ -163,13 +164,13 @@ async function handleDirectRequest(message, session) {
   }
 
   if (textLooksLikeFounderQuestion(text)) {
-    if (!config.founderId) {
+    if (!guildConfig.founderId) {
       await message.channel.send("⚠️ No tengo configurado quién es el fundador.");
       return true;
     }
 
     await message.channel.send(
-      "👑 El fundador es <@" + config.founderId + ">."
+      "👑 El fundador es <@" + guildConfig.founderId + ">."
     );
     return true;
   }
@@ -202,11 +203,11 @@ async function handleDirectRequest(message, session) {
   }
 
   if (wantsHuman) {
-    const staffMember = await findStaffMember(message.guild);
+    const staffMember = await findStaffMember(message.guild, guildConfig);
 
     if (!staffMember) {
-      if (config.founderId) {
-        const founder = await client.users.fetch(config.founderId);
+      if (guildConfig.founderId) {
+        const founder = await client.users.fetch(guildConfig.founderId);
         await founder.send(
           "🛎️ **Solicitud de staff**\n\n" +
           "👤 **Usuario:** <@" + session.ownerId + ">\n" +
@@ -269,6 +270,7 @@ client.on("interactionCreate", async interaction => {
       });
     }
 
+    const guildConfig = getGuildConfig(guild.id);
     const permissionOverwrites = [
       {
         id: guild.roles.everyone.id,
@@ -293,9 +295,9 @@ client.on("interactionCreate", async interaction => {
       }
     ];
 
-    if (config.staffRoleId) {
+    if (guildConfig.staffRoleId) {
       permissionOverwrites.push({
-        id: config.staffRoleId,
+        id: guildConfig.staffRoleId,
         allow: [
           PermissionFlagsBits.ViewChannel,
           PermissionFlagsBits.SendMessages,
@@ -401,9 +403,11 @@ client.on("interactionCreate", async interaction => {
 
 async function escalateToFounder(channel, session, reason, aiResponse = "") {
   if (session.escalated) return true;
-  if (!config.founderId) return false;
 
-  const founder = await client.users.fetch(config.founderId);
+  const guildConfig = getGuildConfig(channel.guild.id);
+  if (!guildConfig.founderId) return false;
+
+  const founder = await client.users.fetch(guildConfig.founderId);
 
   const summary = session.history
     .slice(-10)
@@ -429,8 +433,9 @@ client.on("messageCreate", async message => {
   if (message.channel.type !== ChannelType.GuildText) return;
   if (!message.channel.topic?.startsWith("ticket-owner:")) return;
 
-  if (config.staffRoleId && message.member.roles.cache.has(config.staffRoleId)) return;
-  if (message.author.id === config.founderId) return;
+  const guildConfig = getGuildConfig(message.guild.id);
+  if (guildConfig.staffRoleId && message.member.roles.cache.has(guildConfig.staffRoleId)) return;
+  if (guildConfig.founderId && message.author.id === guildConfig.founderId) return;
 
   const session = sessions.get(message.channel.id) || {
     ownerId: message.author.id,
@@ -451,7 +456,8 @@ client.on("messageCreate", async message => {
 
     const result = await answerWithAI({
       history: session.history,
-      channelName: message.channel.name
+      channelName: message.channel.name,
+      guildConfig
     });
 
     session.history.push({ role: "assistant", content: result.text });
@@ -492,7 +498,7 @@ client.on("messageCreate", async message => {
     );
 
     try {
-      const founder = await client.users.fetch(config.founderId);
+      const founder = await client.users.fetch(guildConfig.founderId);
       await founder.send(
         `⚠️ Error del agente IA en ${message.channel.url}\n\n${error.message}`
       );
