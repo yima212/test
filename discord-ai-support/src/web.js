@@ -361,9 +361,53 @@ function htmlShell(title, body, user = null) {
 .pricing-ref .price-card{min-height:400px}
 @media(max-width:980px){.hero-reference{padding-top:38px}.hero-reference .hero-grid{grid-template-columns:1fr}.hero-art{min-height:390px}.robot-wrap{transform:scale(.8)}}
 @media(max-width:680px){.hero-reference{padding-top:34px}.hero-reference .hero-copy h1{font-size:44px}.hero-reference .hero-copy p{font-size:15px}.hero-art{min-height:340px}.robot-wrap{transform:scale(.68)}.pricing-ref .price-card{min-height:380px}}
+
+/* === Reference landing: single hero panel === */
+.landing-page{background:#05060b}
+.landing-page .site-nav{margin:0 -24px;padding:13px 28px;background:rgba(5,6,12,.88);border:1px solid rgba(255,255,255,.05);box-shadow:0 10px 40px rgba(0,0,0,.22);border-radius:0}
+.landing-page .wrap{max-width:1240px}
+.reference-hero-frame{position:relative;overflow:hidden;border:1px solid rgba(81,107,255,.20);border-radius:18px;background:
+ radial-gradient(circle at 72% 33%,rgba(81,92,255,.28),transparent 24%),
+ radial-gradient(circle at 89% 20%,rgba(20,183,255,.16),transparent 19%),
+ radial-gradient(circle at 45% 68%,rgba(33,44,126,.20),transparent 26%),
+ linear-gradient(135deg,#0b0d1a 0%,#101331 48%,#06131b 100%);
+ box-shadow:0 32px 100px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.05)}
+.reference-hero-frame:before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle at 12% 20%,rgba(255,255,255,.8) 0 1px,transparent 1.5px),radial-gradient(circle at 31% 36%,rgba(147,154,255,.75) 0 1px,transparent 1.5px),radial-gradient(circle at 59% 18%,rgba(255,255,255,.7) 0 1px,transparent 1.5px),radial-gradient(circle at 82% 14%,rgba(255,255,255,.65) 0 1px,transparent 1.5px),radial-gradient(circle at 92% 46%,rgba(73,205,255,.75) 0 1px,transparent 1.5px),radial-gradient(circle at 69% 74%,rgba(129,120,255,.70) 0 1px,transparent 1.5px),radial-gradient(circle at 22% 72%,rgba(255,255,255,.45) 0 1px,transparent 1.5px);opacity:.55}
+.reference-hero-inner{position:relative;z-index:2;padding:42px 40px 0}
+.reference-top-badges{display:flex;gap:10px;flex-wrap:wrap}
+.reference-hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(440px,.92fr);gap:8px;align-items:center;min-height:445px}
+.reference-copy{padding:10px 0 24px}
+.reference-copy h1{font-size:clamp(48px,5.2vw,72px)!important;line-height:.94!important;letter-spacing:-.055em!important;max-width:670px!important;margin:16px 0 14px!important}
+.reference-copy h1 .gradient-text{background:linear-gradient(90deg,#7c6bff 0%,#39d7ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.reference-copy p{max-width:610px!important;font-size:15px!important;line-height:1.55!important;color:#d0d4e2!important}
+.reference-copy .hero-actions{margin-top:19px!important}
+.reference-feature-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.reference-art{position:relative;min-height:430px;display:flex;align-items:center;justify-content:center}
+.reference-orb{position:absolute;width:350px;height:350px;border-radius:50%;background:radial-gradient(circle,rgba(91,87,255,.38) 0%,rgba(46,66,167,.14) 35%,transparent 69%);filter:blur(12px)}
+.reference-stars{position:absolute;inset:0;background:radial-gradient(circle at 26% 26%,rgba(255,255,255,.5) 0 1px,transparent 2px),radial-gradient(circle at 76% 16%,rgba(255,255,255,.45) 0 1px,transparent 2px),radial-gradient(circle at 90% 42%,rgba(75,208,255,.7) 0 1px,transparent 2px)}
+.reference-robot{position:relative;width:280px;height:330px;z-index:2;filter:drop-shadow(0 28px 42px rgba(0,0,0,.35))}
+.reference-robot-halo{position:absolute;inset:25px 6px 28px;border-radius:50%;border:1px solid rgba(96,124,255,.32);box-shadow:0 0 70px rgba(78,90,255,.25),inset 0 0 55px rgba(78,90,255,.10)}
+.reference-robot-head{position:absolute;left:50%;top:72px;transform:translateX(-50%);width:164px;height:108px;border-radius:50px;background:linear-gradient(165deg,#fcfcff 0%,#dadbe4 52%,#9195a8 100%);box-shadow:inset 0 -13px 25px rgba(0,0,0,.15),0 18px 35px rgba(0,0,0,.28)}
+.reference-robot-head:after{content:"";position:absolute;inset:10px;border-radius:42px;border:1px solid rgba(255,255,255,.55)}
+.reference-eye{position:absolute;top:43px;width:19px;height:19px;border-radius:50%;box-shadow:0 0 23px currentColor}
+.reference-eye.l{left:46px;background:#52dcff;color:#52dcff}.reference-eye.r{right:46px;background:#8d7dff;color:#8d7dff}
+.reference-mouth{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);width:55px;height:15px;border-radius:0 0 18px 18px;background:linear-gradient(180deg,#8d7cff,#5145d7);box-shadow:0 5px 13px rgba(108,90,255,.35)}
+.reference-antenna{position:absolute;left:50%;top:40px;transform:translateX(-50%);width:7px;height:39px;border-radius:9px;background:#abb0c2}
+.reference-antenna:after{content:"";position:absolute;left:50%;top:-8px;transform:translateX(-50%);width:17px;height:17px;border-radius:50%;background:#52dcff;box-shadow:0 0 22px #52dcff}
+.reference-body{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);width:143px;height:123px;border-radius:35px 35px 52px 52px;background:linear-gradient(145deg,#a7a8b7,#5f6171);box-shadow:inset 0 -17px 26px rgba(0,0,0,.22),0 22px 40px rgba(0,0,0,.28)}
+.reference-chest{position:absolute;left:50%;top:28px;transform:translateX(-50%);width:74px;height:55px;border-radius:20px;background:linear-gradient(180deg,#8d7eff,#5043d6);box-shadow:inset 0 4px 9px rgba(255,255,255,.18),0 8px 22px rgba(86,71,236,.4)}
+.reference-chest:after{content:"";position:absolute;inset:0;display:grid;place-items:center;color:#f6f4ff;font-size:21px}
+.reference-arm{position:absolute;bottom:66px;width:47px;height:19px;border-radius:18px;background:#777a8a}.reference-arm.l{left:26px;transform:rotate(17deg)}.reference-arm.r{right:26px;transform:rotate(-17deg)}
+.reference-callout{position:absolute;z-index:4;padding:8px 11px;border-radius:10px;background:rgba(10,13,29,.90);border:1px solid rgba(98,104,255,.35);box-shadow:0 14px 28px rgba(0,0,0,.26);font-size:9px;font-weight:900;color:#eef0ff;white-space:nowrap}
+.reference-callout.c1{left:1px;top:50px}.reference-callout.c2{right:2px;top:104px}.reference-callout.c3{right:2px;bottom:84px}.reference-callout.c4{left:8px;bottom:38px}
+.reference-stats{display:grid;grid-template-columns:repeat(4,1fr);margin:0;border-top:1px solid rgba(255,255,255,.08);background:rgba(7,11,25,.76)}
+.reference-stat{padding:17px 20px;border-right:1px solid rgba(255,255,255,.07)}.reference-stat:last-child{border-right:0}.reference-stat strong{display:block;font-size:19px;letter-spacing:-.035em}.reference-stat span{display:block;margin-top:3px;color:#85899c;font-size:10px}
+.reference-below{padding-top:34px!important}
+@media(max-width:980px){.reference-hero-inner{padding:30px 24px 0}.reference-hero-grid{grid-template-columns:1fr}.reference-art{min-height:360px}.reference-copy h1{font-size:50px!important}.reference-callout{display:none}}
+@media(max-width:680px){.landing-page .site-nav{margin:0 -15px}.reference-hero-frame{border-radius:14px}.reference-hero-inner{padding:24px 18px 0}.reference-copy h1{font-size:43px!important}.reference-copy p{font-size:15px!important}.reference-art{min-height:320px}.reference-robot{transform:scale(.78)}.reference-stats{grid-template-columns:1fr 1fr}.reference-stat{padding:13px 14px}.reference-stat strong{font-size:17px}.reference-below{padding-top:24px!important}}
 </style>
 </head>
-<body><div class="wrap">
+<body class="${title === "AI Support" ? "landing-page" : ""}"><div class="wrap">
 <header class="site-nav"><div class="nav-inner">
 <a class="brand" href="${user ? "/dashboard" : "/"}"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"><rect x="5" y="7" width="14" height="11" rx="4" fill="#fff"/><circle cx="9" cy="12" r="1.5" fill="#6d5dfc"/><circle cx="15" cy="12" r="1.5" fill="#44d8ff"/><path d="M12 4v3" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="3" r="1.2" fill="#44d8ff"/></svg></span><span class="brand-copy"><strong>AI SUPPORT</strong><span>Discord automation</span></span></a>
 ${nav}
@@ -476,34 +520,77 @@ app.get("/", async (req, res) => {
   const plans = Object.values(PLAN_DEFINITIONS).map(def => {
     const suffix = def.key === "pro" ? "<span>/mes</span>" : (def.key === "lifetime" ? "<span> único</span>" : "<span>/mes</span>");
     const action = def.key === "free" ? "Empezar gratis" : (def.key === "pro" ? "Suscribirse con Stripe" : "Comprar Lifetime");
-    const features = [formatLimit(def.ticketsPerMonth,"tickets/mes"), formatLimit(def.aiRepliesPerMonth,"respuestas IA/mes"), formatLimit(def.knowledgeChars,"caracteres KB")].map(x => "<div>✓ <b>"+escapeHtml(x,100)+"</b></div>").join("");
+    const features = [
+      formatLimit(def.ticketsPerMonth,"tickets/mes"),
+      formatLimit(def.aiRepliesPerMonth,"respuestas IA/mes"),
+      formatLimit(def.knowledgeChars,"caracteres KB")
+    ].map(x => "<div>✓ <b>"+escapeHtml(x,100)+"</b></div>").join("");
     return "<article class=\"card price-card "+(def.key==="pro"?"featured":"")+"\">"+
-      (def.key==="pro" ? "<div class=\"price-badge\">MÁS USADO</div>" : "")+
+      (def.key==="pro"?"<div class=\"price-badge\">MÁS USADO</div>":"")+
       "<div class=\"price-name\">"+escapeHtml(def.name,40)+"</div>"+
       "<div class=\"price-value\">"+escapeHtml(def.price,20)+suffix+"</div>"+
       "<p>"+escapeHtml(def.key==="free"?"Ideal para empezar":def.key==="pro"?"Para servidores en crecimiento":"Pago único, para siempre",100)+"</p>"+
       "<div class=\"price-list\">"+features+def.features.map(x => "<div>✓ "+escapeHtml(x,120)+"</div>").join("")+"</div>"+
-      "<a class=\"btn "+(def.key==="pro"?"":"alt")+" \" href=\"/auth/discord\">"+action+"</a></article>";
+      "<a class=\"btn "+(def.key==="pro"?"":"alt")+"\" href=\"/auth/discord\">"+action+"</a></article>";
   }).join("");
 
   res.send(htmlShell("AI Support", `
-    <section class="hero hero-reference"><div class="hero-grid">
-      <div class="hero-copy">
-        <div class="hero-trust-grid" style="margin-top:0;margin-bottom:8px"><span class="mock-badge"><span class="dot"></span>#1 Discord Support Bot</span><span class="mock-badge"><span class="dot"></span>Powered by Gemini AI</span></div><div class="eyebrow"><span class="eyebrow-dot"></span>Discord support · powered by AI</div>
-        <h1>Automatiza el soporte de tu servidor con <span class="gradient-text">Inteligencia Artificial</span>.</h1>
-        <p>Responde preguntas, gestiona tickets y ahorra tiempo. Todo en uno, rápido y fácil de configurar.</p>
-        <div class="hero-actions"><a class="btn" href="/auth/discord">🚀 Invitar al bot</a><a class="btn alt" href="#pricing">Ver precios</a></div>
-        <div class="hero-trust-grid"><span class="mock-badge"><span class="dot"></span>Tickets automáticos</span><span class="mock-badge"><span class="dot"></span>Multilingüe</span><span class="mock-badge"><span class="dot"></span>Escalado a staff</span><span class="mock-badge"><span class="dot"></span>Fácil de configurar</span></div>
+    <section class="hero hero-reference" style="padding:26px 0 22px">
+      <div class="reference-hero-frame">
+        <div class="reference-hero-inner">
+          <div class="reference-top-badges">
+            <span class="mock-badge"><span class="dot"></span> #1 Discord Support Bot</span>
+            <span class="mock-badge"><span class="dot"></span> Powered by Gemini AI</span>
+          </div>
+          <div class="reference-hero-grid">
+            <div class="reference-copy">
+              <h1>Automatiza el soporte de tu servidor de Discord <span class="gradient-text">con Inteligencia Artificial</span>.</h1>
+              <p>Responde preguntas, gestiona tickets y ahorra tiempo. Todo en uno, rápido y fácil de configurar.</p>
+              <div class="hero-actions"><a class="btn" href="/auth/discord">🚀 Invitar al bot</a><a class="btn alt" href="#pricing">Ver precios</a></div>
+              <div class="reference-feature-row">
+                <span class="mock-badge"><span class="dot"></span>Tickets automáticos</span>
+                <span class="mock-badge"><span class="dot"></span>Multilingüe</span>
+                <span class="mock-badge"><span class="dot"></span>Escalado a staff</span>
+                <span class="mock-badge"><span class="dot"></span>Fácil de configurar</span>
+              </div>
+            </div>
+            <div class="reference-art">
+              <div class="reference-orb"></div><div class="reference-stars"></div>
+              <span class="reference-callout c1">🎫 Tickets automáticos</span>
+              <span class="reference-callout c2">✦ IA con Gemini</span>
+              <span class="reference-callout c3">🌍 Multilinguaje</span>
+              <span class="reference-callout c4">🛎️ Escalado a staff</span>
+              <div class="reference-robot">
+                <div class="reference-robot-halo"></div>
+                <div class="reference-antenna"></div>
+                <div class="reference-robot-head"><span class="reference-eye l"></span><span class="reference-eye r"></span><span class="reference-mouth"></span></div>
+                <div class="reference-body"><span class="reference-chest">◆</span></div>
+                <span class="reference-arm l"></span><span class="reference-arm r"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="reference-stats">
+          <div class="reference-stat"><strong>+2.000</strong><span>Servidores</span></div>
+          <div class="reference-stat"><strong>99.9%</strong><span>Uptime</span></div>
+          <div class="reference-stat"><strong>Multilingüe</strong><span>ES · EN · FR · AR · …</span></div>
+          <div class="reference-stat"><strong>Asistencia 24/7</strong><span>con IA</span></div>
+        </div>
       </div>
-      <div class="hero-art"><div class="art-glow"></div>
-        <div class="robot-wrap"><div class="robot-halo"></div><div class="robot-antenna"></div><div class="robot-head"><span class="robot-eye left"></span><span class="robot-eye right"></span><span class="robot-mouth"></span></div><div class="robot-body"><span class="robot-panel"></span></div><span class="robot-arm left"></span><span class="robot-arm right"></span></div>
-        <div class="art-badges"><span class="mock-badge b1">✦ IA con Gemini</span><span class="mock-badge b2">🌍 Multilenguaje</span><span class="mock-badge b3">🛎️ Escalado a staff</span><span class="mock-badge b4">⚙️ Fácil de configurar</span></div>
-      </div>
-    </div></section>
-    <section class="section-block"><div class="ref-stats"><div class="ref-stat"><strong>+2.000</strong><span>Servidores</span></div><div class="ref-stat"><strong>99.9%</strong><span>Uptime</span></div><div class="ref-stat"><strong>Multilingüe</strong><span>ES · FR · AR · …</span></div><div class="ref-stat"><strong>24/7</strong><span>Asistencia con IA</span></div></div></section>
-    <section class="section-block" id="features"><div class="section-head"><div><span class="pill">Funciones</span><h2>Todo en un mismo panel.</h2><p>Soporte automatizado con control para tu equipo.</p></div></div>
-      <div class="grid"><article class="card feature-card"><div class="feature-icon">🎫</div><h3>Tickets automáticos</h3><p>Canales privados y gestión organizada de cada conversación.</p></article><article class="card feature-card"><div class="feature-icon">✦</div><h3>IA con Gemini</h3><p>Respuestas contextualizadas usando historial y Knowledge Base.</p></article><article class="card feature-card"><div class="feature-icon">🌍</div><h3>Multilingüe</h3><p>Detecta el idioma y mantiene la conversación.</p></article><article class="card feature-card"><div class="feature-icon">🛎️</div><h3>Escalado a staff</h3><p>Entrega el contexto al equipo humano cuando sea necesario.</p></article><article class="card feature-card"><div class="feature-icon">📚</div><h3>Knowledge Base</h3><p>Reglas, FAQ y procedimientos específicos de tu servidor.</p></article><article class="card feature-card"><div class="feature-icon">📊</div><h3>Dashboard</h3><p>Métricas, planes y configuración desde un solo lugar.</p></article></div>
     </section>
+
+    <section class="section-block reference-below" id="features">
+      <div class="section-head"><div><span class="pill">Funciones</span><h2>Todo lo necesario para soporte inteligente.</h2><p>Una experiencia simple para administradores y miembros.</p></div></div>
+      <div class="grid">
+        <article class="card feature-card"><div class="feature-icon">🎫</div><h3>Tickets automáticos</h3><p>Canales privados y gestión organizada de cada conversación.</p></article>
+        <article class="card feature-card"><div class="feature-icon">✦</div><h3>IA con Gemini</h3><p>Respuestas contextualizadas usando historial y Knowledge Base.</p></article>
+        <article class="card feature-card"><div class="feature-icon">🌍</div><h3>Multilingüe</h3><p>Detecta y mantiene el idioma del usuario.</p></article>
+        <article class="card feature-card"><div class="feature-icon">🛎️</div><h3>Escalado a staff</h3><p>Entrega el contexto al equipo cuando sea necesario.</p></article>
+        <article class="card feature-card"><div class="feature-icon">📚</div><h3>Knowledge Base</h3><p>Reglas, FAQ y procedimientos específicos de tu servidor.</p></article>
+        <article class="card feature-card"><div class="feature-icon">📊</div><h3>Dashboard</h3><p>Métricas, planes y configuración desde un solo lugar.</p></article>
+      </div>
+    </section>
+
     <section class="section-block"><div class="section-head"><div><span class="pill">Discord</span><h2>Ejemplo de ticket.</h2><p>Así recibe ayuda un miembro dentro de tu servidor.</p></div></div>
       <div class="ticket-demo"><aside class="ticket-demo-side"><div class="server-name">◉ Tu Servidor</div><div class="channel"># general</div><div class="channel"># soporte</div><div class="channel active"># ticket-1234</div><div class="channel" style="margin-top:18px">🔊 General</div></aside>
       <div class="ticket-demo-main"><div class="ticket-demo-header"><span># ticket-1234</span><span>⋮</span></div><div class="ticket-demo-messages">
@@ -512,10 +599,10 @@ app.get("/", async (req, res) => {
         <div class="discord-msg"><div class="discord-avatar">AI</div><div><div class="discord-bubble bot"><b>AI Support</b><br>Usa <b>/panel</b> o abre el dashboard web para configurar tickets, staff y Knowledge Base.</div></div></div>
       </div><div class="ticket-composer"><input readonly value="Escribe un mensaje a #ticket-1234…"><button type="button">➤</button></div></div></div>
     </section>
+
     <section class="section-block" id="pricing"><div class="section-head"><div><span class="pill">Precios</span><h2>Planes simples, para cualquier comunidad.</h2><p>Elige el plan que mejor se adapte a tu servidor.</p></div></div><div class="grid pricing-ref">${plans}</div></section>
     <section class="section-block" id="docs"><div class="section-head"><div><span class="pill">Cómo funciona</span><h2>Del servidor vacío al soporte activo.</h2><p>Conecta, configura y automatiza.</p></div></div><div class="grid"><article class="card step-card"><div class="step-number">01</div><h3>Conecta</h3><p>Inicia sesión con Discord y añade AI Support.</p></article><article class="card step-card"><div class="step-number">02</div><h3>Configura</h3><p>Elige categoría, staff, mensajes y Knowledge Base.</p></article><article class="card step-card"><div class="step-number">03</div><h3>Automatiza</h3><p>La IA responde y escala los casos que requieren una persona.</p></article></div></section>
     <section class="section-block" id="faq"><div class="section-head"><div><span class="pill">FAQ</span><h2>Preguntas frecuentes.</h2></div></div><div class="grid"><article class="card"><h3>¿La IA usa mis reglas?</h3><p>Sí. La Knowledge Base del servidor forma parte del contexto de las respuestas.</p></article><article class="card"><h3>¿Puedo hablar con un humano?</h3><p>Sí. El ticket puede escalarse al fundador o al staff configurado.</p></article><article class="card"><h3>¿Los planes son por servidor?</h3><p>Sí. Cada servidor tiene su propia configuración, uso y plan.</p></article></div></section>
-    
   `));
 });
 
