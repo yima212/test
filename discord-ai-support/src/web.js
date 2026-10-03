@@ -305,7 +305,7 @@ function htmlShell(title, body, user = null) {
 </head>
 <body><div class="wrap">
 <header class="site-nav"><div class="nav-inner">
-<a class="brand" href="${user ? "/dashboard" : "/"}"><span class="brand-mark">✦</span><span class="brand-copy"><strong>AI SUPPORT</strong><span>Discord automation</span></span></a>
+<a class="brand" href="${user ? "/dashboard" : "/"}"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"><rect x="5" y="7" width="14" height="11" rx="4" fill="#fff"/><circle cx="9" cy="12" r="1.5" fill="#6d5dfc"/><circle cx="15" cy="12" r="1.5" fill="#44d8ff"/><path d="M12 4v3" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="3" r="1.2" fill="#44d8ff"/></svg></span><span class="brand-copy"><strong>AI SUPPORT</strong><span>Discord automation</span></span></a>
 ${nav}
 </div></header>
 ${body}
@@ -515,27 +515,35 @@ app.get("/onboarding", async (req, res) => {
   `, session.user));
 });
 
-app.get("/terms", (_req, res) => res.send(htmlShell("Términos de servicio", `
-  <main class="legal"><span class="pill">Información legal</span><h1>Términos de servicio</h1><p>Última actualización: octubre de 2026</p>
-  <h2>1. Servicio</h2><p>AI Support es una aplicación de automatización para comunidades de Discord que proporciona tickets privados, asistencia mediante IA, configuración por servidor y escalado a personal humano.</p>
-  <h2>2. Cuenta y permisos</h2><p>Debes utilizar una cuenta de Discord con permisos suficientes para gestionar el servidor correspondiente. Eres responsable de mantener seguras tus credenciales y de revisar las autorizaciones que otorgas.</p>
-  <h2>3. Uso aceptable</h2><p>No debes utilizar el servicio para actividades ilícitas, abusivas, fraudulentas, para intentar comprometer cuentas o sistemas de terceros, ni para eludir medidas de seguridad o límites.</p>
-  <h2>4. IA y Knowledge Base</h2><p>Las respuestas generadas por IA pueden contener errores. Debes revisar las respuestas relevantes y mantener actualizada la documentación del servidor.</p>
-  <h2>5. Planes y facturación</h2><p>Los planes de pago se aplican por servidor. Las condiciones de precio, renovación y cancelación se muestran durante la contratación y en el portal de facturación.</p>
-  <h2>6. Disponibilidad</h2><p>No se garantiza disponibilidad ininterrumpida. El servicio también depende de Discord, proveedores de IA, Stripe y otros terceros.</p>
-  <h2>7. Cambios</h2><p>Las condiciones pueden actualizarse para reflejar cambios del producto, obligaciones legales o mejoras operativas.</p>
-  <h2>8. Información del titular</h2><p>Antes de publicar estas condiciones como documento legal definitivo, completa aquí los datos legales de la entidad titular, domicilio y canal de contacto.</p>
+
+app.get("/terms", (_req, res) => res.send(htmlShell("Términos", `
+  <main class="legal">
+    <span class="pill">AI Support · Legal</span>
+    <h1>Términos de servicio</h1>
+    <p>Condiciones generales de uso del servicio de soporte y automatización para Discord.</p>
+    <div class="card" style="margin-top:20px"><div class="notice">Última actualización: octubre de 2026 · Documento de producto pendiente de completar con los datos legales del titular.</div></div>
+    <h2>1. Servicio</h2><p>AI Support proporciona automatización de soporte para comunidades de Discord, incluyendo tickets privados, asistencia mediante IA, Knowledge Base, persistencia y escalado a personas del equipo.</p>
+    <h2>2. Cuenta y servidores</h2><p>El acceso al dashboard requiere autorización mediante Discord. Debes disponer de permisos suficientes para gestionar el servidor seleccionado y eres responsable de la configuración que realices.</p>
+    <h2>3. Uso aceptable</h2><p>No utilices el servicio para actividades ilícitas, fraude, abuso, acceso no autorizado, distribución de código malicioso o elusión de controles de seguridad y límites del servicio.</p>
+    <h2>4. Respuestas de IA</h2><p>Las respuestas son generadas automáticamente y pueden ser incorrectas o incompletas. La Knowledge Base del servidor ayuda a contextualizar las respuestas, pero no sustituye la revisión humana en asuntos importantes.</p>
+    <h2>5. Planes, pagos y licencias</h2><p>Los precios y límites aplicables son los mostrados en el dashboard y durante el proceso de contratación. Las activaciones mediante códigos están sujetas a disponibilidad, caducidad y uso único según las condiciones del servicio.</p>
+    <h2>6. Servicios de terceros</h2><p>El funcionamiento depende de servicios como Discord, proveedores de IA, Stripe y la infraestructura de alojamiento. Las interrupciones de terceros pueden afectar al servicio.</p>
+    <h2>7. Cambios y terminación</h2><p>El servicio y estas condiciones pueden modificarse o suspenderse cuando sea necesario para mantenimiento, seguridad, cumplimiento normativo o evolución del producto.</p>
+    <h2>8. Datos legales del titular</h2><p>Completa antes de publicar como documento definitivo: razón social o nombre del responsable, domicilio, correo de contacto, identificación fiscal y cualquier información exigida por la normativa aplicable.</p>
   </main>
 `)));
 
-app.get("/privacy", (_req, res) => res.send(htmlShell("Política de privacidad", `
-  <main class="legal"><span class="pill">Privacidad</span><h1>Política de privacidad</h1><p>Última actualización: octubre de 2026</p>
-  <h2>1. Datos tratados</h2><p>La aplicación puede tratar identificadores de Discord, nombre de usuario, servidores autorizables, configuración del servidor, tickets y métricas de uso necesarias para prestar el servicio.</p>
-  <h2>2. Finalidades</h2><p>Los datos se utilizan para autenticar administradores, gestionar la configuración por servidor, mantener el historial de tickets, aplicar límites, procesar pagos cuando corresponda y mantener la seguridad.</p>
-  <h2>3. Terceros</h2><p>Discord proporciona identidad y datos de servidor mediante OAuth; el proveedor de IA procesa las solicitudes necesarias para generar respuestas; Stripe procesa los pagos y la facturación contratada.</p>
-  <h2>4. Conservación</h2><p>Los datos se conservan durante el tiempo necesario para prestar el servicio, resolver incidencias, mantener la seguridad y cumplir obligaciones legales o contractuales.</p>
-  <h2>5. Seguridad</h2><p>La aplicación utiliza controles de sesión, cookies seguras, validación de origen, limitación de solicitudes y auditoría de acciones administrativas.</p>
-  <h2>6. Derechos</h2><p>Antes de publicar esta política como documento legal definitivo, completa los datos del responsable del tratamiento, la base jurídica y el canal para ejercer derechos.</p>
+app.get("/privacy", (_req, res) => res.send(htmlShell("Privacidad", `
+  <main class="legal">
+    <span class="pill">AI Support · Privacidad</span>
+    <h1>Política de privacidad</h1>
+    <p>Información sobre los datos tratados para prestar y proteger el servicio.</p>
+    <div class="card" style="margin-top:20px"><div class="notice">Última actualización: octubre de 2026 · Completa los datos del responsable y bases jurídicas antes de publicar como documento definitivo.</div></div>
+    <h2>1. Datos que podemos tratar</h2><p>Identificadores de Discord, nombre de usuario, avatar, servidores autorizados, configuraciones, tickets, mensajes del ticket, métricas de uso y datos de facturación necesarios para gestionar un plan.</p>
+    <h2>2. Para qué se utilizan</h2><p>Autenticación, gestión de servidores, soporte, generación de respuestas IA, mantenimiento del historial, aplicación de límites, seguridad, prevención de abuso y gestión de pagos.</p>
+    <h2>3. Proveedores</h2><p>Discord interviene en la identidad y autorización; el proveedor de IA procesa solicitudes necesarias para producir respuestas; Stripe gestiona los pagos y la facturación de los servicios contratados; la infraestructura de alojamiento almacena los datos operativos.</p>
+    <h2>4. Conservación y seguridad</h2><p>Se aplican medidas técnicas y organizativas destinadas a reducir accesos no autorizados y conservar los datos durante el tiempo necesario para prestar el servicio y cumplir obligaciones.</p>
+    <h2>5. Derechos</h2><p>Completa el responsable del tratamiento, la base jurídica, el correo de privacidad y el procedimiento para ejercer derechos antes de publicar este texto como política jurídica definitiva.</p>
   </main>
 `)));
 
@@ -546,65 +554,98 @@ app.get("/pricing", async (req, res) => {
 
   const guildId = cleanText(req.query.guild, 100).trim();
   if (!guildId) {
-    const serverLinks = session.guilds.map(guild => {
+    const cards = session.guilds.map(guild => {
       const icon = discordIconUrl(guild);
-      return '<article class="card"><div class="server-card"><div class="server-icon">' +
-        (icon ? '<img src="' + escapeHtml(icon,300) + '" alt="">' : '◎') +
-        '</div><div class="server-meta"><div class="server-name">' + escapeHtml(guild.name,100) + '</div>' +
-        '<div class="status">Gestionar facturación de este servidor</div></div>' +
-        '<a class="btn btn-sm" href="/pricing?guild=' + encodeURIComponent(guild.id) + '">Ver planes</a></div></article>';
+      const inBot = client.guilds.cache.has(guild.id);
+      return '<a class="card" href="/pricing?guild=' + encodeURIComponent(guild.id) + '"><div class="server-card">' +
+        '<div class="server-icon">' + (icon ? '<img src="' + escapeHtml(icon,300) + '" alt="">' : '◎') + '</div>' +
+        '<div class="server-meta"><div class="server-name">' + escapeHtml(guild.name,100) + '</div>' +
+        '<div class="status"><span class="status-dot ' + (inBot ? "online" : "offline") + '"></span>' + (inBot ? "Bot conectado" : "Pendiente de instalar") + '</div></div>' +
+        '<span class="btn btn-sm">Gestionar</span></div></a>';
     }).join("");
 
-    return res.send(htmlShell("Planes", `
-      <div class="dashboard-hero"><div><span class="pill">Facturación</span><h1>Selecciona un servidor.</h1><p>Los planes se contratan por servidor de Discord, no por cuenta global.</p></div></div>
-      <div class="grid">${serverLinks || '<div class="card empty" style="grid-column:1/-1"><div class="feature-icon">◈</div><h3>No hay servidores gestionables</h3><p>Conecta una cuenta con permisos de administración.</p></div>'}</div>
-    `, session.user));
+    return res.send(htmlShell("Planes", '<div class="dashboard-hero"><div><span class="pill">Facturación</span><h1>Selecciona un servidor.</h1><p>Los planes, límites y pagos se gestionan por servidor de Discord.</p></div></div><div class="grid">' +
+      (cards || '<div class="card empty" style="grid-column:1/-1"><div class="feature-icon">◈</div><h3>No hay servidores</h3><p>Conecta una cuenta con permisos de administración.</p></div>') +
+      '</div>', session.user));
   }
 
   const guild = session.guilds.find(g => g.id === guildId);
   if (!guild) return res.status(403).send("No autorizado.");
-  const pricingDiscordGuild = client.guilds.cache.get(guild.id);
-  if (!await userCanManageGuild(pricingDiscordGuild, session.user.id)) return res.status(403).send("No autorizado.");
+  const liveGuild = client.guilds.cache.get(guild.id);
+  if (!await userCanManageGuild(liveGuild, session.user.id)) return res.status(403).send("No autorizado.");
 
-  const planState = await getGuildPlan(guild.id);
+  const [planState, usage] = await Promise.all([getGuildPlan(guild.id), getGuildUsage(guild.id)]);
   const currentPlanKey = planState.status === "active" ? normalizePlan(planState.plan) : "free";
   const currentPlan = getPlanDefinition(currentPlanKey);
   const currentPlanBlock = currentPlanKey === "free"
     ? '<span class="badge muted">STARTER</span>'
     : '<span class="badge success">' + escapeHtml(currentPlan.name,30) + ' · ' + escapeHtml(planState.status,30) + '</span>';
   const portalButton = planState.stripeCustomerId
-    ? '<a class="btn alt" href="/billing/portal/' + encodeURIComponent(guild.id) + '">Gestionar facturación</a>'
+    ? '<a class="btn alt btn-sm" href="/billing/portal/' + encodeURIComponent(guild.id) + '">Gestionar en Stripe</a>'
     : '';
   const canBuyPaid = currentPlanKey === "free";
-  const proButton = canBuyPaid
-    ? '<form method="post" action="/billing/checkout/' + encodeURIComponent(guild.id) + '/pro" style="margin:0"><button class="btn" type="submit">Contratar Pro · $6/mes</button></form>'
-    : '<span class="badge muted">Plan ya activo</span>';
-  const lifetimeButton = canBuyPaid
-    ? '<form method="post" action="/billing/checkout/' + encodeURIComponent(guild.id) + '/lifetime" style="margin:0"><button class="btn" type="submit">Comprar Lifetime · $30</button></form>'
-    : '<span class="badge muted">Plan ya activo</span>';
+  const ticketPct = Math.min(100, Math.round(usage.ticketsCreated / Math.max(1, currentPlan.ticketsPerMonth) * 100));
+  const aiPct = Math.min(100, Math.round(usage.aiResponses / Math.max(1, currentPlan.aiRepliesPerMonth) * 100));
 
   const planCards = Object.values(PLAN_DEFINITIONS).map(def => {
-    const priceSuffix = def.key === "pro" ? "<span>/mes</span>" : "";
-    const featureRows = def.features.map(x => "<div>✓ " + escapeHtml(x,160) + "</div>").join("");
-    const limits = "<div><b>" + formatLimit(def.ticketsPerMonth, "tickets nuevos/mes") + "</b></div>" +
-      "<div><b>" + formatLimit(def.aiRepliesPerMonth, "respuestas IA/mes") + "</b></div>" +
-      "<div><b>" + formatLimit(def.knowledgeChars, "caracteres KB") + "</b></div>";
-    const action = def.key === "free" ? '<span class="badge muted">Incluido</span>' : (def.key === "pro" ? proButton : lifetimeButton);
+    const suffix = def.key === "pro" ? '<span>/mes</span>' : '';
+    const action = def.key === "free"
+      ? '<span class="badge muted">Incluido</span>'
+      : def.key === "pro"
+        ? (canBuyPaid ? '<form method="post" action="/billing/checkout/' + encodeURIComponent(guild.id) + '/pro" style="margin:0"><button class="btn" type="submit">Suscribirse con Stripe</button></form>' : '<span class="badge muted">Plan ya activo</span>')
+        : (canBuyPaid ? '<form method="post" action="/billing/checkout/' + encodeURIComponent(guild.id) + '/lifetime" style="margin:0"><button class="btn" type="submit">Comprar Lifetime</button></form>' : '<span class="badge muted">Plan ya activo</span>');
+    const features = def.features.map(x => '<div>✓ ' + escapeHtml(x,160) + '</div>').join("");
     return '<article class="card price-card ' + (def.key === "pro" ? "featured" : "") + '">' +
-      (def.key === "pro" ? '<div class="price-badge">MÁS USADO</div>' : '') +
+      (def.key === "pro" ? '<div class="price-badge">RECOMENDADO</div>' : '') +
       '<div class="price-name">' + escapeHtml(def.name,40) + '</div>' +
-      '<div class="price-value">' + escapeHtml(def.price,20) + priceSuffix + '</div>' +
-      '<p>' + escapeHtml(def.billing,80) + '.</p><div class="price-list">' + limits + featureRows + '</div>' +
+      '<div class="price-value">' + escapeHtml(def.price,20) + suffix + '</div>' +
+      '<p>' + escapeHtml(def.billing,80) + '.</p>' +
+      '<div class="price-list"><div><b>' + formatLimit(def.ticketsPerMonth,"tickets nuevos/mes") + '</b></div><div><b>' + formatLimit(def.aiRepliesPerMonth,"respuestas IA/mes") + '</b></div><div><b>' + formatLimit(def.knowledgeChars,"caracteres KB") + '</b></div>' + features + '</div>' +
       '<div class="actions" style="margin-top:auto">' + action + '</div></article>';
   }).join("");
 
-  res.send(htmlShell("Planes", `
-    <div class="dashboard-hero"><div><span class="pill">Facturación · ${escapeHtml(guild.name,100)}</span><h1>Elige tu plan.</h1><p>Los límites de uso y la facturación se aplican por servidor. Stripe gestiona los pagos.</p></div>
-      <div class="dashboard-actions">${portalButton}<a class="btn alt" href="/servers/${encodeURIComponent(guild.id)}">← Panel</a></div>
+  const statusNotice = req.query.billing === "success"
+    ? '<div class="notice success" style="margin-bottom:14px"><strong>✓ Pago iniciado correctamente.</strong> Stripe notificará la activación del plan al servidor.</div>'
+    : req.query.billing === "cancel"
+      ? '<div class="notice" style="margin-bottom:14px"><strong>Pago cancelado.</strong> No se han realizado cambios en el plan.</div>'
+      : '';
+
+  const icon = discordIconUrl(guild);
+
+  res.send(htmlShell("Planes · " + guild.name, `
+    <div class="app-shell fade-in">
+      <aside class="app-sidebar">
+        <div class="server-switch"><div class="mini-icon">${icon ? '<img src="' + escapeHtml(icon,300) + '" alt="">' : '◎'}</div><div class="name"><strong>${escapeHtml(guild.name,100)}</strong><span>Facturación</span></div><span>⌄</span></div>
+        <div class="side-group">Workspace</div>
+        <a class="side-link" href="/dashboard?guild=${encodeURIComponent(guild.id)}"><span class="icon">⌂</span>Inicio</a>
+        <a class="side-link" href="/servers/${encodeURIComponent(guild.id)}#tickets"><span class="icon">▣</span>Tickets</a>
+        <a class="side-link" href="/servers/${encodeURIComponent(guild.id)}#ai"><span class="icon">✦</span>IA</a>
+        <a class="side-link" href="/servers/${encodeURIComponent(guild.id)}#knowledge"><span class="icon">▤</span>Knowledge Base</a>
+        <a class="side-link" href="/servers/${encodeURIComponent(guild.id)}#staff"><span class="icon">♙</span>Configuración</a>
+        <a class="side-link active" href="/pricing?guild=${encodeURIComponent(guild.id)}"><span class="icon">◈</span>Facturación</a>
+        <a class="side-link" href="/servers/${encodeURIComponent(guild.id)}#activation"><span class="icon">⌁</span>Código de activación</a>
+      </aside>
+
+      <main class="app-main">
+        <div class="page-top"><div><span class="pill">Facturación · ${escapeHtml(guild.name,100)}</span><h1>Tu plan.</h1><p>Gestiona límites, suscripción y licencia del servidor.</p></div><div class="dashboard-actions">${portalButton}<a class="btn alt btn-sm" href="/servers/${encodeURIComponent(guild.id)}">← Panel</a></div></div>
+        ${statusNotice}
+
+        <div class="panel-card">
+          <div class="toolbar"><div><div class="muted">Plan actual</div><h3 style="font-size:22px;margin-top:6px">${escapeHtml(currentPlan.name,40)}</h3><div class="sub">${escapeHtml(currentPlan.price + " · " + currentPlan.billing,60)}</div></div><div>${currentPlanBlock}</div></div>
+          <div class="grid" style="margin-top:18px">
+            <div class="card"><div class="stat-label">Tickets este mes</div><div class="kpi" style="font-size:28px">${usage.ticketsCreated}/${currentPlan.ticketsPerMonth}</div><div class="progress" style="margin-top:9px"><span style="width:${ticketPct}%"></span></div></div>
+            <div class="card"><div class="stat-label">Respuestas IA</div><div class="kpi" style="font-size:28px">${usage.aiResponses}/${currentPlan.aiRepliesPerMonth}</div><div class="progress" style="margin-top:9px"><span style="width:${aiPct}%"></span></div></div>
+            <div class="card"><div class="stat-label">Knowledge Base</div><div class="kpi" style="font-size:28px">${formatLimit(currentPlan.knowledgeChars,"chars")}</div><div class="help">Límite de contenido</div></div>
+          </div>
+        </div>
+
+        <section class="section-block"><div class="section-head"><div><span class="pill">Planes</span><h2>Elige cómo quieres crecer.</h2><p>Precios y límites sincronizados con la configuración actual del servicio.</p></div></div><div class="grid">${planCards}</div></section>
+
+        <section class="section-block" id="activation"><div class="section-head"><div><span class="pill">Licencia</span><h2>¿Tienes un código?</h2><p>Activa Pro o Lifetime sin Checkout.</p></div></div>
+          <div class="panel-card"><form method="post" action="/api/servers/${encodeURIComponent(guild.id)}/activation-code"><div class="code-box"><input name="code" maxlength="32" autocomplete="off" placeholder="PRO-ABCD-EFGH o LIFE-ABCD-EFGH" required><button class="btn" type="submit">🔐 Activar código</button></div></form><div class="help" style="margin-top:9px">El código se consume una sola vez y queda asociado a este servidor.</div></div>
+        </section>
+      </main>
     </div>
-    <div class="card" style="margin-bottom:18px"><div class="toolbar"><div><span class="muted">Plan actual</span><div style="margin-top:5px;font-weight:900;font-size:18px">${escapeHtml(currentPlan.name,40)}</div></div><div>${currentPlanBlock}</div></div></div>
-    <div class="grid">${planCards}</div>
-    <div class="card" style="margin-top:18px"><div class="notice"><strong>Uso mensual:</strong> Lifetime no tiene renovación mensual, pero mantiene límites mensuales para proteger la estabilidad del servicio.</div></div>
   `, session.user));
 });
 
