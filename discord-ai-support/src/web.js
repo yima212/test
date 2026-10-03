@@ -671,31 +671,31 @@ app.get("/admin", async (req, res) => {
         effectiveStatus === "used" ? "Usado" :
         effectiveStatus === "expired" ? "Caducado" :
         "Desactivado";
-      return \`<tr>
-        <td><strong>\${escapeHtml(code.code_hint,40)}••••</strong></td>
-        <td>\${escapeHtml(getPlanDefinition(normalizePlan(code.plan)).name,40)}</td>
-        <td><span class="badge \${statusClass}">\${escapeHtml(statusLabel,30)}</span></td>
-        <td>\${escapeHtml(formatDate(code.created_at),80)}</td>
-        <td>\${escapeHtml(formatDate(code.expires_at),80)}</td>
-        <td>\${code.redeemed_guild_id ? escapeHtml(code.redeemed_guild_id,80) : "—"}</td>
-      </tr>\`;
+      return `<tr>
+        <td><strong>${escapeHtml(code.code_hint,40)}••••</strong></td>
+        <td>${escapeHtml(getPlanDefinition(normalizePlan(code.plan)).name,40)}</td>
+        <td><span class="badge ${statusClass}">${escapeHtml(statusLabel,30)}</span></td>
+        <td>${escapeHtml(formatDate(code.created_at),80)}</td>
+        <td>${escapeHtml(formatDate(code.expires_at),80)}</td>
+        <td>${code.redeemed_guild_id ? escapeHtml(code.redeemed_guild_id,80) : "—"}</td>
+      </tr>`;
     }).join("");
 
-    res.send(htmlShell("Admin · Códigos", \`
+    res.send(htmlShell("Admin · Códigos", `
       <div class="hero">
         <span class="pill">🔐 Administración segura</span>
         <h1>Licencias y códigos.</h1>
         <p>Generación server-side de códigos de un solo uso. Solo tu cuenta de Discord, configurada como FOUNDER_USER_ID, puede acceder a este panel.</p>
       </div>
 
-      \${generatedNotice}
-      \${disabledNotice}
+      ${generatedNotice}
+      ${disabledNotice}
 
       <div class="grid">
-        <div class="card"><div class="kpi">\${stats.total}</div><div class="stat-label">Códigos totales</div></div>
-        <div class="card"><div class="kpi">\${stats.available}</div><div class="stat-label">Disponibles</div></div>
-        <div class="card"><div class="kpi">\${stats.used}</div><div class="stat-label">Usados</div></div>
-        <div class="card"><div class="kpi">\${stats.disabledOrExpired}</div><div class="stat-label">Desactivados/caducados</div></div>
+        <div class="card"><div class="kpi">${stats.total}</div><div class="stat-label">Códigos totales</div></div>
+        <div class="card"><div class="kpi">${stats.available}</div><div class="stat-label">Disponibles</div></div>
+        <div class="card"><div class="kpi">${stats.used}</div><div class="stat-label">Usados</div></div>
+        <div class="card"><div class="kpi">${stats.disabledOrExpired}</div><div class="stat-label">Desactivados/caducados</div></div>
       </div>
 
       <section class="section" style="margin-top:28px">
@@ -749,12 +749,12 @@ app.get("/admin", async (req, res) => {
       <section class="section" style="margin-top:28px">
         <div class="section-title"><h2>Actividad</h2><span class="muted small">Últimos 100</span></div>
         <div class="card">
-          \${rows
+          ${rows
             ? '<div class="table-wrap"><table><thead><tr><th>Código</th><th>Plan</th><th>Estado</th><th>Creado</th><th>Expira</th><th>Servidor usado</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
             : '<p class="muted">Todavía no has generado códigos.</p>'}
         </div>
       </section>
-    \`, session.user));
+    `, session.user));
   } catch (error) {
     console.error("Admin dashboard error:", error);
     res.status(500).send(htmlShell("Error",
@@ -784,24 +784,24 @@ app.post("/admin/activation-codes/generate", async (req, res) => {
       createdByDiscordUserId: session.user.id
     });
 
-    const codeText = codes.join("\\n");
+    const codeText = codes.join("\n");
     const downloadHref = "data:text/plain;charset=utf-8," + encodeURIComponent(codeText);
 
-    res.send(htmlShell("Códigos generados", \`
+    res.send(htmlShell("Códigos generados", `
       <div class="hero">
         <span class="pill">✅ Lote creado</span>
-        <h1>\${codes.length} códigos \${escapeHtml(getPlanDefinition(plan).name,40)}.</h1>
+        <h1>${codes.length} códigos ${escapeHtml(getPlanDefinition(plan).name,40)}.</h1>
         <p>Guárdalos ahora. Por seguridad, la aplicación no vuelve a mostrar los códigos completos después de esta pantalla.</p>
       </div>
       <div class="card">
-        <textarea id="generated-codes" readonly style="min-height:340px">\${escapeHtml(codeText,10000)}</textarea>
+        <textarea id="generated-codes" readonly style="min-height:340px">${escapeHtml(codeText,10000)}</textarea>
         <div class="actions" style="margin-top:14px">
           <button class="btn" type="button" onclick="navigator.clipboard.writeText(document.getElementById('generated-codes').value)">📋 Copiar todos</button>
-          <a class="btn alt" href="\${escapeHtml(downloadHref,20000)}" download="activation-codes-\${escapeHtml(plan,20)}.txt">⬇️ Descargar TXT</a>
+          <a class="btn alt" href="${escapeHtml(downloadHref,20000)}" download="activation-codes-${escapeHtml(plan,20)}.txt">⬇️ Descargar TXT</a>
           <a class="btn alt" href="/admin?generated=1">← Administración</a>
         </div>
       </div>
-    \`, session.user));
+    `, session.user));
   } catch (error) {
     console.error("Activation code generation error:", error);
     res.status(400).send(htmlShell("Error",
