@@ -15,6 +15,7 @@ const {
 
 const config = require("./config");
 const { answerWithAI, shouldEscalate } = require("./ai");
+const { startDashboard } = require("./web");
 
 const client = new Client({
   intents: [
@@ -499,4 +500,5 @@ client.on("messageCreate", async message => {
   }
 });
 
+startDashboard({ client, sessions });
 client.login(config.token);
