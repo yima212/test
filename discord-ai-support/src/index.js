@@ -144,7 +144,8 @@ client.on("interactionCreate", async interaction => {
 
     sessions.set(channel.id, {
       ownerId: interaction.user.id,
-      history: []
+      history: [],
+      escalated: false
     });
 
     const closeRow = new ActionRowBuilder().addComponents(
@@ -152,7 +153,12 @@ client.on("interactionCreate", async interaction => {
         .setCustomId("ticket_close")
         .setLabel("Cerrar ticket")
         .setEmoji("🔒")
-        .setStyle(ButtonStyle.Danger)
+        .setStyle(ButtonStyle.Danger),
+      new ButtonBuilder()
+        .setCustomId("ticket_human")
+        .setLabel("Hablar con humano")
+        .setEmoji("👤")
+        .setStyle(ButtonStyle.Secondary)
     );
 
     await channel.send({
@@ -174,6 +180,41 @@ client.on("interactionCreate", async interaction => {
     });
   }
 
+  if (interaction.customId === "ticket_human") {
+    const session = sessions.get(interaction.channel.id) || {
+      ownerId: interaction.user.id,
+      history: [],
+      escalated: false
+    };
+    sessions.set(interaction.channel.id, session);
+
+    try {
+      const sent = await escalateToFounder(
+        interaction.channel,
+        session,
+        "El usuario solicitó hablar con un humano."
+      );
+
+      if (!sent) {
+        return interaction.reply({
+          content: "⚠️ No he podido avisar al fundador. Revisa la configuración de FOUNDER_USER_ID.",
+          ephemeral: true
+        });
+      }
+
+      return interaction.reply({
+        content: "👤 He avisado al equipo para que atienda tu ticket.",
+        ephemeral: false
+      });
+    } catch (error) {
+      console.error(error);
+      return interaction.reply({
+        content: "⚠️ No he podido avisar al equipo en este momento.",
+        ephemeral: true
+      });
+    }
+  }
+
   if (interaction.customId === "ticket_close") {
     if (!interaction.memberPermissions.has(PermissionFlagsBits.ManageChannels)) {
       return interaction.reply({
@@ -188,6 +229,31 @@ client.on("interactionCreate", async interaction => {
   }
 });
 
+async function escalateToFounder(channel, session, reason) {
+  if (session.escalated) return true;
+  if (!config.founderId) return false;
+
+  const founder = await client.users.fetch(config.founderId);
+
+  const summary = session.history
+    .slice(-10)
+    .map(x => `${x.role === "user" ? "Usuario" : "IA"}: ${x.content}`)
+    .join("\n");
+
+  await founder.send({
+    content:
+      `🚨 **Ticket requiere atención**\n\n` +
+      `🎫 **Ticket:** ${channel}\n` +
+      `👤 **Usuario:** <@${session.ownerId}>\n` +
+      `📌 **Motivo:** ${reason}\n\n` +
+      `📝 **Conversación reciente:**\n${summary || "(sin mensajes)"}\n\n` +
+      `🔗 ${channel.url}`
+  });
+
+  session.escalated = true;
+  return true;
+}
+
 client.on("messageCreate", async message => {
   if (message.author.bot || !message.guild) return;
   if (message.channel.type !== ChannelType.GuildText) return;
@@ -198,11 +264,14 @@ client.on("messageCreate", async message => {
 
   const session = sessions.get(message.channel.id) || {
     ownerId: message.author.id,
-    history: []
+    history: [],
+    escalated: false
   };
   sessions.set(message.channel.id, session);
 
   session.history.push({ role: "user", content: message.content });
+
+  if (session.escalated) return;
 
   try {
     await message.channel.sendTyping();
