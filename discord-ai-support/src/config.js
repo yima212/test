@@ -21,5 +21,9 @@ module.exports = {
   aiModel: process.env.AI_MODEL || "gemini-3.5-flash-lite",
   port: Number(process.env.PORT || 3000),
   discordClientSecret: (process.env.DISCORD_CLIENT_SECRET || "").trim(),
-  dashboardUrl: (process.env.DASHBOARD_URL || "https://discord-ai-support-production-7db6.up.railway.app").replace(/\/$/, "")
+  dashboardUrl: (process.env.DASHBOARD_URL || "https://discord-ai-support-production-7db6.up.railway.app").replace(/\/$/, ""),
+  stripeSecretKey: (process.env.STRIPE_SECRET_KEY || "").trim(),
+  stripeWebhookSecret: (process.env.STRIPE_WEBHOOK_SECRET || "").trim(),
+  stripeProPriceId: (process.env.STRIPE_PRO_PRICE_ID || "").trim(),
+  stripeLifetimePriceId: (process.env.STRIPE_LIFETIME_PRICE_ID || "").trim()
 };
