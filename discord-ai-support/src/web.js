@@ -5,6 +5,7 @@ const config = require("./config");
 
 const app = express();
 app.use(express.json({ limit: "32kb" }));
+app.use(express.urlencoded({ extended: false, limit: "32kb" }));
 
 const sessions = new Map();
 const oauthStates = new Map();
@@ -267,8 +268,7 @@ module.exports = {
   startDashboard({ client: discordClient }) {
     // Make the Discord client available to the dashboard handlers.
     global.client = discordClient;
-    app.use(express.urlencoded({ extended: false }));
-    app.listen(config.port, () => {
+    app.listen(config.port, "0.0.0.0", () => {
       console.log(`🌐 Dashboard: ${config.dashboardUrl}`);
     });
   }
