@@ -961,6 +961,15 @@ app.get("/servers/:guildId", async (req, res) => {
 
     const icon = discordIconUrl(guild);
 
+    const activationState = cleanText(req.query.activation, 30).trim().toLowerCase();
+    const activationPlan = normalizePlan(cleanText(req.query.plan, 30).trim());
+    const activationNotice = activationState === "success"
+      ? '<div class="notice"><strong>✅ Código activado.</strong> El servidor ahora tiene el plan ' + escapeHtml(getPlanDefinition(activationPlan).name, 40) + '.</div>'
+      : activationState
+        ? '<div class="notice" style="border-color:#5b2532;background:#1a0f14;color:#fecdd3"><strong>⚠️ No se activó el código.</strong> ' + escapeHtml(activationReasonMessage(activationState), 300) + '</div>'
+        : '';
+
+
     res.send(htmlShell("Panel · " + guild.name, `
       <div class="hero">
         <span class="pill">${icon ? '<img src="'+escapeHtml(icon,300)+'" style="width:20px;height:20px;border-radius:7px;margin-right:7px;vertical-align:-5px" alt="">' : ''}${escapeHtml(guild.name,100)}</span>
