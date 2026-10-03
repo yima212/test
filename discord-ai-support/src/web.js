@@ -11,6 +11,15 @@ const sessions = new Map();
 const oauthStates = new Map();
 const guildConfigs = new Map();
 
+function getGuildConfig(guildId) {
+  return guildConfigs.get(guildId) || {
+    staffRoleId: config.staffRoleId || "",
+    founderId: config.founderId || "",
+    welcomeText: "Hola 👋 Cuéntame qué necesitas.",
+    knowledge: ""
+  };
+}
+
 const DISCORD_API = "https://discord.com/api/v10";
 const BOT_PERMISSIONS = "93200";
 
@@ -237,12 +246,7 @@ app.get("/servers/:guildId", (req, res) => {
   const botIn = Boolean(client.guilds.cache.get(guild.id));
   if (!botIn) return res.redirect("/dashboard");
 
-  const cfg = guildConfigs.get(guild.id) || {
-    staffRoleId: "",
-    founderId: config.founderId,
-    welcomeText: "Hola 👋 Cuéntame qué necesitas.",
-    knowledge: ""
-  };
+  const cfg = getGuildConfig(guild.id);
 
   res.send(htmlShell("Servidor", `
     <div class="hero"><span class="pill">${cleanText(guild.name)}</span><h1>Configuración</h1><p>Los cambios se aplican al servidor cuando guardes.</p></div>
@@ -289,5 +293,6 @@ module.exports = {
     app.listen(config.port, "0.0.0.0", () => {
       console.log(`🌐 Dashboard: ${config.dashboardUrl}`);
     });
-  }
+  },
+  getGuildConfig
 };
