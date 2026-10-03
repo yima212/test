@@ -100,7 +100,8 @@ app.get("/auth/discord", (_req, res) => {
     client_id: config.clientId,
     redirect_uri: config.dashboardUrl + "/auth/discord/callback",
     response_type: "code",
-    scope: "identify guilds"
+    scope: "identify guilds",
+    state
   });
 
   res.redirect("https://discord.com/oauth2/authorize?" + params.toString());
@@ -181,6 +182,7 @@ app.get("/", (_req, res) => {
       <div class="card"><div class="kpi">🛎️</div><h3>Escalado</h3><p class="muted">Contacta al staff cuando hace falta.</p></div>
     </div>
   `));
+
 });
 
 app.get("/dashboard", (req, res) => {
@@ -236,7 +238,8 @@ app.get("/servers/:guildId", (req, res) => {
         <label>Mensaje de bienvenida</label>
         <textarea name="welcomeText">${cleanText(cfg.welcomeText,1000)}</textarea>
         <label>Base de conocimiento</label>
-        <textarea name="knowledge" placeholder="FAQ, reglas, precios, procesos...${String.fromCharCode(10)}">${cleanText(cfg.knowledge,5000)}</textarea>
+        <textarea name="knowledge" placeholder="FAQ, reglas, precios, procesos...
+">${cleanText(cfg.knowledge,5000)}</textarea>
         <div class="row" style="margin-top:14px">
           <button class="btn" type="submit">Guardar configuración</button>
           <a class="btn alt" href="/dashboard">Volver</a>
@@ -253,7 +256,6 @@ app.post("/api/servers/:guildId", (req, res) => {
   if (!guild || !client.guilds.cache.get(guild.id)) return res.status(403).send("No autorizado.");
 
   const body = req.body || {};
-  // express.urlencoded is not enabled yet; support JSON clients too.
   guildConfigs.set(guild.id, {
     founderId: cleanText(body.founderId,100).trim() || config.founderId,
     staffRoleId: cleanText(body.staffRoleId,100).trim(),
@@ -266,7 +268,6 @@ app.post("/api/servers/:guildId", (req, res) => {
 
 module.exports = {
   startDashboard({ client: discordClient }) {
-    // Make the Discord client available to the dashboard handlers.
     global.client = discordClient;
     app.listen(config.port, "0.0.0.0", () => {
       console.log(`🌐 Dashboard: ${config.dashboardUrl}`);
