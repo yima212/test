@@ -476,6 +476,11 @@ app.get("/pricing", async (req, res) => {
   const guild = session.guilds.find(g => g.id === guildId);
   if (!guild) return res.status(403).send("No autorizado.");
 
+  const pricingDiscordGuild = client.guilds.cache.get(guild.id);
+  if (!await userCanManageGuild(pricingDiscordGuild, session.user.id)) {
+    return res.status(403).send("No autorizado.");
+  }
+
   const planState = await getGuildPlan(guild.id);
   const currentPlanKey = planState.status === "active" ? normalizePlan(planState.plan) : "free";
   const currentPlan = getPlanDefinition(currentPlanKey);
@@ -740,9 +745,10 @@ app.get("/admin", async (req, res) => {
       session.user
     ));
 
-    const [stats, codes] = await Promise.all([
+    const [stats, codes, auditLogs] = await Promise.all([
       getActivationCodeStats(),
-      listActivationCodes(100)
+      listActivationCodes(100),
+      getRecentAuditLogs(50)
     ]);
 
     const generatedNotice = req.query.generated === "1"
@@ -837,6 +843,17 @@ app.get("/admin", async (req, res) => {
             </div>
           </form>
           <div class="help" style="margin-top:10px">Los códigos completos no se almacenan en texto plano; después de salir de la pantalla de generación solo se conserva su hash y una referencia parcial.</div>
+        </div>
+      </section>
+
+      <section class="section" style="margin-top:28px">
+        <div class="section-title"><h2>Registro de seguridad</h2><span class="muted small">Últimas 50 acciones</span></div>
+        <div class="card">
+          ${auditLogs.length
+            ? '<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Acción</th><th>Usuario</th><th>Servidor</th></tr></thead><tbody>' +
+              auditLogs.map(log => '<tr><td>' + escapeHtml(formatDate(log.created_at),80) + '</td><td><strong>' + escapeHtml(log.action,100) + '</strong></td><td>' + escapeHtml(log.actor_discord_user_id,80) + '</td><td>' + escapeHtml(log.guild_id || "—",80) + '</td></tr>').join("") +
+              '</tbody></table></div>'
+            : '<p class="muted">Todavía no hay acciones registradas.</p>'}
         </div>
       </section>
 
@@ -1277,12 +1294,22 @@ app.post("/api/servers/:guildId", rateLimit("server-config", 30, 5 * 60 * 1000),
     }
 
     await saveGuildConfig(guild.id, {
-
       founderId: cleanText(body.founderId,100).trim() || config.founderId,
       staffRoleId: cleanText(body.staffRoleId,100).trim(),
       ticketCategoryId: cleanText(body.ticketCategoryId,100).trim(),
       welcomeText: cleanText(body.welcomeText,1000).trim(),
       knowledge
+    });
+
+    await recordAuditLog({
+      actorDiscordUserId: session.user.id,
+      action: "guild_config_updated",
+      guildId: guild.id,
+      details: {
+        knowledgeChars: knowledge.length,
+        staffRoleConfigured: Boolean(cleanText(body.staffRoleId, 100).trim()),
+        ticketCategoryConfigured: Boolean(cleanText(body.ticketCategoryId, 100).trim())
+      }
     });
 
     res.redirect("/servers/" + encodeURIComponent(guild.id) + "?saved=1");
