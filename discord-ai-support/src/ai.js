@@ -9,21 +9,27 @@ REGLAS:
 - Responde en español salvo que el usuario escriba claramente en otro idioma.
 - Sé breve, claro y educado.
 - No inventes precios, políticas, permisos, datos, enlaces ni procedimientos.
-- Si la información necesaria no está disponible, debes ESCALAR.
+- Si la información necesaria no está disponible o el asunto requiere intervención humana, debes escalar.
+- NUNCA afirmes que has avisado al equipo si no se ha hecho una llamada real al sistema de escalado.
 - No afirmes haber realizado acciones que no hayas realizado.
 - No pidas ni almacenes contraseñas, tokens o secretos.
-- Si el asunto requiere intervención humana, indícalo.
+
+PROTOCOLO DE ESCALADO:
+- Cuando sea necesaria una persona, empieza tu respuesta exactamente con:
+[ESCALATE]
+y después explica brevemente al usuario que el equipo deberá revisar el caso.
+- Si NO hace falta una persona, no uses [ESCALATE].
 `;
 
 async function answerWithAI({ history }) {
   if (!config.geminiKey) {
     return {
-      text: "👤 El asistente IA no está configurado todavía. He avisado al equipo.",
+      text: "Necesito que el equipo configure el asistente IA antes de continuar.",
       escalate: true
     };
   }
 
-  const model = config.aiModel || "gemini-2.5-flash-lite";
+  const model = config.aiModel || "gemini-3.5-flash-lite";
   const url = `${GEMINI_URL}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(config.geminiKey)}`;
 
   const contents = [
@@ -55,24 +61,37 @@ async function answerWithAI({ history }) {
   }
 
   const data = await response.json();
-  const text = data?.candidates?.[0]?.content?.parts
+  let text = data?.candidates?.[0]?.content?.parts
     ?.map(part => part.text || "")
     .join("")
     .trim();
 
-  return {
-    text: text || "👤 Necesito que el equipo revise este caso.",
-    escalate: !text
-  };
+  if (!text) {
+    return {
+      text: "Necesito que el equipo revise este caso.",
+      escalate: true
+    };
+  }
+
+  const escalate = /^\s*\[ESCALATE\]\s*/i.test(text);
+  text = text.replace(/^\s*\[ESCALATE\]\s*/i, "").trim();
+
+  return { text, escalate };
 }
 
 function shouldEscalate(text) {
   const t = text.toLowerCase();
+
   return [
-    "no tengo información suficiente",
-    "necesito que el equipo",
-    "que el equipo lo revise",
-    "no puedo resolver"
+    "ya he escalado",
+    "he escalado tu caso",
+    "he escalado el caso",
+    "este caso requiere intervención humana",
+    "necesitas que el equipo lo revise",
+    "un miembro del equipo deberá",
+    "un miembro del equipo se pondrá en contacto",
+    "necesito que el equipo revise",
+    "no puedo resolverlo"
   ].some(x => t.includes(x));
 }
 
