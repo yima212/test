@@ -47,13 +47,20 @@ function currentSession(req) {
 }
 
 function isManager(guild) {
-  return Boolean(
-    guild &&
-    (
-      (Number(guild.permissions) & 0x20) === 0x20 ||
-      (Number(guild.permissions) & 0x8) === 0x8
-    )
-  );
+  if (!guild) return false;
+  if (guild.owner === true) return true;
+
+  try {
+    const permissions = BigInt(guild.permissions || "0");
+    const MANAGE_GUILD = 32n;
+    const ADMINISTRATOR = 8n;
+    return (
+      (permissions & MANAGE_GUILD) === MANAGE_GUILD ||
+      (permissions & ADMINISTRATOR) === ADMINISTRATOR
+    );
+  } catch {
+    return false;
+  }
 }
 
 function htmlShell(title, body, user = null) {
@@ -139,7 +146,17 @@ app.get("/auth/discord/callback", async (req, res) => {
     ]);
 
     const user = await userResponse.json();
-    const guilds = (await guildResponse.json()).filter(isManager);
+    const guildPayload = await guildResponse.json();
+
+    if (!guildResponse.ok || !Array.isArray(guildPayload)) {
+      throw new Error("Discord no devolvió la lista de servidores.");
+    }
+
+    const guilds = guildPayload.filter(isManager);
+
+    console.log(
+      `[OAUTH] user=${user.username || user.id} guilds=${guildPayload.length} manageable=${guilds.length}`
+    );
 
     const sessionToken = issueSession(user, guilds);
     res.setHeader(
