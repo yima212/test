@@ -124,6 +124,23 @@ async function initDatabase() {
     ON activation_codes (redeemed_guild_id)
   `);
 
+
+  await p.query(`
+    CREATE TABLE IF NOT EXISTS admin_audit_log (
+      id BIGSERIAL PRIMARY KEY,
+      actor_discord_user_id TEXT NOT NULL,
+      action TEXT NOT NULL,
+      guild_id TEXT,
+      details JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await p.query(`
+    CREATE INDEX IF NOT EXISTS idx_admin_audit_log_created
+    ON admin_audit_log (created_at DESC)
+  `);
+
   await p.query(`
     CREATE TABLE IF NOT EXISTS guild_configs (
       guild_id TEXT PRIMARY KEY,
@@ -666,6 +683,41 @@ async function getActivationCodeStats() {
   };
 }
 
+
+async function recordAuditLog({ actorDiscordUserId, action, guildId = null, details = {} }) {
+  if (!actorDiscordUserId || !action) return;
+
+  await getPool().query(
+    `INSERT INTO admin_audit_log
+      (actor_discord_user_id, action, guild_id, details)
+     VALUES ($1, $2, $3, $4::jsonb)`,
+    [
+      actorDiscordUserId,
+      String(action).slice(0, 120),
+      guildId ? String(guildId).slice(0, 64) : null,
+      JSON.stringify(details || {})
+    ]
+  );
+}
+
+async function getRecentAuditLogs(limit = 100) {
+  const safeLimit = Math.min(Math.max(Number(limit) || 100, 1), 500);
+  const result = await getPool().query(
+    `SELECT
+       id,
+       actor_discord_user_id,
+       action,
+       guild_id,
+       details,
+       created_at
+     FROM admin_audit_log
+     ORDER BY created_at DESC
+     LIMIT $1`,
+    [safeLimit]
+  );
+  return result.rows;
+}
+
 async function getGuildPlan(guildId) {
   const result = await getPool().query(
     "SELECT plan, status, stripe_customer_id, stripe_subscription_id, stripe_price_id FROM guild_subscriptions WHERE guild_id = $1",
@@ -886,5 +938,7 @@ module.exports = {
   redeemActivationCode,
   disableActivationCode,
   listActivationCodes,
-  getActivationCodeStats
+  getActivationCodeStats,
+  recordAuditLog,
+  getRecentAuditLogs
 };
