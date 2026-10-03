@@ -1,6 +1,7 @@
 const express = require("express");
 const crypto = require("crypto");
 const Stripe = require("stripe");
+const ROBOT_IMAGE_DATA = require("./robotAsset");
 
 const config = require("./config");
 const {
@@ -569,7 +570,7 @@ app.get("/", async (req, res) => {
               <span class="reference-callout c3">🌍 Multilenguaje</span>
               <span class="reference-callout c4">🛎️ Escalado a staff</span>
               <div class="robot-photo-stage">
-                <img class="reference-robot-photo" src="https://spaces-cdn.clipsafari.com/sbgzs4515c3wqqo5g6ebpw910nbs" alt="Robot mascot" loading="eager" decoding="async">
+                <img class="reference-robot-photo" src="${ROBOT_IMAGE_DATA}" alt="Robot mascot" loading="eager" decoding="async">
               </div>
             </div>
           </div>
