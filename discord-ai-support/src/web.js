@@ -308,6 +308,68 @@ app.get("/", async (req, res) => {
   `));
 });
 
+app.get("/pricing", async (req, res) => {
+  const session = await currentSession(req);
+  if (!session) return res.redirect("/");
+
+  res.send(htmlShell("Planes", `
+    <div class="hero">
+      <span class="pill">SaaS · Planes</span>
+      <h1>Elige cómo quieres usar AI Support.</h1>
+      <p>La estructura de planes ya está preparada por servidor. La facturación online se conectará en el siguiente paso.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <span class="pill">FREE</span>
+        <h2 style="margin-top:12px">Starter</h2>
+        <div class="kpi">0€</div>
+        <p class="muted">Para probar el sistema en un servidor.</p>
+        <div class="help">Tickets, IA, Knowledge Base y soporte básico.</div>
+      </div>
+      <div class="card">
+        <span class="pill">PRO</span>
+        <h2 style="margin-top:12px">Pro</h2>
+        <div class="kpi">—</div>
+        <p class="muted">Más capacidad y funciones para comunidades activas.</p>
+        <div class="help">Precio y límites se configurarán cuando conectemos Stripe.</div>
+      </div>
+      <div class="card">
+        <span class="pill">BUSINESS</span>
+        <h2 style="margin-top:12px">Business</h2>
+        <div class="kpi">—</div>
+        <p class="muted">Para comunidades que necesitan una configuración avanzada.</p>
+        <div class="help">Precio y límites se configurarán cuando conectemos Stripe.</div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:18px">
+      <div class="toolbar">
+        <div>
+          <strong>Facturación</strong>
+          <div class="muted small">Stripe aún no está conectado. No se realizará ningún cobro.</div>
+        </div>
+        <a class="btn alt" href="/dashboard">← Volver</a>
+      </div>
+    </div>
+  `, session.user));
+});
+
+app.get("/servers/:guildId/install", async (req, res) => {
+  const session = await currentSession(req);
+  if (!session) return res.redirect("/");
+  const guild = session.guilds.find(g => g.id === req.params.guildId);
+  if (!guild) return res.status(403).send("No autorizado.");
+
+  const params = new URLSearchParams({
+    client_id: config.clientId,
+    scope: "bot applications.commands",
+    permissions: BOT_PERMISSIONS,
+    guild_id: guild.id,
+    disable_guild_select: "true"
+  });
+
+  res.redirect("https://discord.com/oauth2/authorize?" + params.toString());
+});
+
 app.get("/dashboard", async (req, res) => {
   const session = await currentSession(req);
   if (!session) return res.redirect("/");
@@ -418,11 +480,18 @@ app.get("/servers/:guildId", async (req, res) => {
           <a href="#ai">🤖 IA</a>
           <a href="#staff">👥 Staff</a>
           <a href="#knowledge">📚 Knowledge Base</a>
+          <a href="#billing">💳 Plan</a>
         </aside>
 
         <main>
           <section id="overview" class="section">
-            <div class="section-title"><h2>Resumen</h2><span class="pill">🟢 Bot conectado</span></div>
+            <div class="section-title">
+                <h2>Resumen</h2>
+                <div class="actions">
+                  <span class="pill">🟢 Bot conectado</span>
+                  <a class="btn alt small" href="/pricing">Ver planes</a>
+                </div>
+              </div>
             <div class="grid">
               <div class="card"><div class="kpi">${stats.totalTickets}</div><div class="stat-label">Tickets totales</div></div>
               <div class="card"><div class="kpi">${stats.openTickets}</div><div class="stat-label">Tickets abiertos</div></div>
@@ -485,6 +554,20 @@ app.get("/servers/:guildId", async (req, res) => {
                     <label>Estado</label>
                     <input value="🟢 Bot conectado en este servidor" disabled>
                   </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="billing" class="section" style="margin-top:28px">
+              <div class="section-title"><h2>Plan y facturación</h2><span class="muted small">Estado actual del servidor</span></div>
+              <div class="card">
+                <div class="toolbar">
+                  <div>
+                    <span class="pill">${escapeHtml(String(plan.plan).toUpperCase(),20)}</span>
+                    <h3 style="margin-top:10px">Plan ${escapeHtml(String(plan.plan),20)}</h3>
+                    <p class="muted">Estado: ${escapeHtml(plan.status,30)} · Los planes y cobros se aplicarán por servidor.</p>
+                  </div>
+                  <a class="btn" href="/pricing">Gestionar plan</a>
                 </div>
               </div>
             </section>
