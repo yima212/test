@@ -825,7 +825,7 @@ app.get("/servers/:guildId", async (req, res) => {
                 <div class="help">Aparece automáticamente cuando se abre un ticket.</div>
 
                 <label style="margin-top:18px">Base de conocimiento</label>
-                <textarea name="knowledge">${escapeHtml(cfg.knowledge,10000)}</textarea>
+                <textarea name="knowledge">${escapeHtml(cfg.knowledge,100000)}</textarea>
                 <div class="help">Límite del plan ${planDefinition.name}: ${formatLimit(planDefinition.knowledgeChars, "caracteres")}. Introduce reglas, FAQ, precios, procedimientos y documentación que la IA puede utilizar.</div>
 
                 <div class="toolbar" style="margin-top:16px">
@@ -860,7 +860,7 @@ app.post("/api/servers/:guildId", async (req, res) => {
     const planState = await getGuildPlan(guild.id);
     const effectivePlanKey = planState.status === "active" ? normalizePlan(planState.plan) : "free";
     const planDefinition = getPlanDefinition(effectivePlanKey);
-    const knowledge = cleanText(body.knowledge, 10000);
+    const knowledge = cleanText(body.knowledge, 100000);
 
     if (knowledge.length > planDefinition.knowledgeChars) {
       return res.status(400).send(
