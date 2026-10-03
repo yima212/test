@@ -68,9 +68,19 @@ async function initDatabase() {
       guild_id TEXT PRIMARY KEY,
       plan TEXT NOT NULL DEFAULT 'free',
       status TEXT NOT NULL DEFAULT 'active',
+      stripe_customer_id TEXT,
+      stripe_subscription_id TEXT,
+      stripe_price_id TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
+  `);
+
+  await p.query(`
+    ALTER TABLE guild_subscriptions
+    ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT,
+    ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT,
+    ADD COLUMN IF NOT EXISTS stripe_price_id TEXT
   `);
 
   await p.query(`
@@ -339,7 +349,7 @@ async function cleanupExpiredSessions() {
 
 async function getGuildPlan(guildId) {
   const result = await getPool().query(
-    "SELECT plan, status FROM guild_subscriptions WHERE guild_id = $1",
+    "SELECT plan, status, stripe_customer_id, stripe_subscription_id, stripe_price_id FROM guild_subscriptions WHERE guild_id = $1",
     [guildId]
   );
 
@@ -350,13 +360,49 @@ async function getGuildPlan(guildId) {
        ON CONFLICT (guild_id) DO NOTHING`,
       [guildId]
     );
-    return { plan: "free", status: "active" };
+    return {
+      plan: "free",
+      status: "active",
+      stripeCustomerId: null,
+      stripeSubscriptionId: null,
+      stripePriceId: null
+    };
   }
 
+  const row = result.rows[0];
   return {
-    plan: result.rows[0].plan,
-    status: result.rows[0].status
+    plan: row.plan,
+    status: row.status,
+    stripeCustomerId: row.stripe_customer_id || null,
+    stripeSubscriptionId: row.stripe_subscription_id || null,
+    stripePriceId: row.stripe_price_id || null
   };
+}
+
+async function saveGuildSubscription({
+  guildId,
+  plan,
+  status,
+  stripeCustomerId = null,
+  stripeSubscriptionId = null,
+  stripePriceId = null
+}) {
+  await getPool().query(
+    `INSERT INTO guild_subscriptions
+      (guild_id, plan, status, stripe_customer_id, stripe_subscription_id, stripe_price_id, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, NOW())
+     ON CONFLICT (guild_id)
+     DO UPDATE SET
+       plan = EXCLUDED.plan,
+       status = EXCLUDED.status,
+       stripe_customer_id = EXCLUDED.stripe_customer_id,
+       stripe_subscription_id = EXCLUDED.stripe_subscription_id,
+       stripe_price_id = EXCLUDED.stripe_price_id,
+       updated_at = NOW()`,
+    [guildId, plan, status, stripeCustomerId, stripeSubscriptionId, stripePriceId]
+  );
+
+  return getGuildPlan(guildId);
 }
 
 async function getGuildDashboardStats(guildId) {
@@ -426,5 +472,6 @@ module.exports = {
   createOAuthState,
   consumeOAuthState,
   cleanupExpiredSessions,
-  getGuildPlan
+  getGuildPlan,
+  saveGuildSubscription
 };
