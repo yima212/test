@@ -475,7 +475,7 @@ async function consumeGuildQuota(guildId, metric, limit) {
 
   await p.query(
     `INSERT INTO guild_usage_monthly (guild_id, usage_month, ai_responses)
-     VALUES ($1, to_char(NOW() AT TIME ZONE 'Europe/Madrid', 'YYYY-MM'), 1)
+     VALUES ($1, to_char(NOW() AT TIME ZONE 'Europe/Madrid', 'YYYY-MM'), 0)
      ON CONFLICT (guild_id, usage_month)
      DO NOTHING`,
     [guildId]
