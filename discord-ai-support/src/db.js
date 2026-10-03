@@ -889,6 +889,40 @@ async function getGuildDashboardStats(guildId) {
   };
 }
 
+async function getGuildTicketActivity(guildId, days = 30) {
+  const safeDays = Math.min(Math.max(Number(days) || 30, 7), 90);
+  const result = await getPool().query(
+    `WITH days AS (
+       SELECT generate_series(
+         CURRENT_DATE - ($2::int - 1),
+         CURRENT_DATE,
+         INTERVAL '1 day'
+       )::date AS day
+     )
+     SELECT
+       d.day,
+       COUNT(t.channel_id)::int AS tickets,
+       COUNT(t.channel_id) FILTER (WHERE t.status = 'open')::int AS opened,
+       COUNT(t.channel_id) FILTER (WHERE t.status = 'closed')::int AS closed,
+       COUNT(t.channel_id) FILTER (WHERE t.escalated = TRUE)::int AS escalated
+     FROM days d
+     LEFT JOIN tickets t
+       ON t.guild_id = $1
+      AND (t.created_at AT TIME ZONE 'Europe/Madrid')::date = d.day
+     GROUP BY d.day
+     ORDER BY d.day ASC`,
+    [guildId, safeDays]
+  );
+
+  return result.rows.map(row => ({
+    day: row.day,
+    tickets: Number(row.tickets || 0),
+    opened: Number(row.opened || 0),
+    closed: Number(row.closed || 0),
+    escalated: Number(row.escalated || 0)
+  }));
+}
+
 async function getRecentGuildTickets(guildId, limit = 10) {
   const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 50);
   const result = await getPool().query(
@@ -921,6 +955,7 @@ module.exports = {
   loadOpenTickets,
   getGuildDashboardStats,
   getRecentGuildTickets,
+  getGuildTicketActivity,
   upsertDashboardUser,
   createDashboardSession,
   getDashboardSession,
