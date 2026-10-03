@@ -1,5 +1,6 @@
 const express = require("express");
 const crypto = require("crypto");
+const Stripe = require("stripe");
 
 const config = require("./config");
 const {
@@ -13,11 +14,18 @@ const {
   createOAuthState,
   consumeOAuthState,
   cleanupExpiredSessions,
-  getGuildPlan
+  getGuildPlan,
+  saveGuildSubscription
 } = require("./db");
 
 const app = express();
-app.use(express.json({ limit: "32kb" }));
+const stripe = config.stripeSecretKey ? new Stripe(config.stripeSecretKey) : null;
+app.use(express.json({
+  limit: "32kb",
+  verify: (req, _res, buf) => {
+    if (req.path === "/api/stripe/webhook") req.rawBody = Buffer.from(buf);
+  }
+}));
 app.use(express.urlencoded({ extended: false, limit: "32kb" }));
 
 const DISCORD_API = "https://discord.com/api/v10";
@@ -308,49 +316,250 @@ app.get("/", async (req, res) => {
   `));
 });
 
+
 app.get("/pricing", async (req, res) => {
   const session = await currentSession(req);
   if (!session) return res.redirect("/");
 
-  res.send(htmlShell("Planes", `
-    <div class="hero">
-      <span class="pill">SaaS · Planes</span>
-      <h1>Elige cómo quieres usar AI Support.</h1>
-      <p>La estructura de planes ya está preparada por servidor. La facturación online se conectará en el siguiente paso.</p>
-    </div>
-    <div class="grid">
-      <div class="card">
-        <span class="pill">FREE</span>
-        <h2 style="margin-top:12px">Starter</h2>
-        <div class="kpi">0€</div>
-        <p class="muted">Para probar el sistema en un servidor.</p>
-        <div class="help">Tickets, IA, Knowledge Base y soporte básico.</div>
-      </div>
-      <div class="card">
-        <span class="pill">PRO</span>
-        <h2 style="margin-top:12px">Pro</h2>
-        <div class="kpi">—</div>
-        <p class="muted">Más capacidad y funciones para comunidades activas.</p>
-        <div class="help">Precio y límites se configurarán cuando conectemos Stripe.</div>
-      </div>
-      <div class="card">
-        <span class="pill">BUSINESS</span>
-        <h2 style="margin-top:12px">Business</h2>
-        <div class="kpi">—</div>
-        <p class="muted">Para comunidades que necesitan una configuración avanzada.</p>
-        <div class="help">Precio y límites se configurarán cuando conectemos Stripe.</div>
-      </div>
-    </div>
-    <div class="card" style="margin-top:18px">
-      <div class="toolbar">
-        <div>
-          <strong>Facturación</strong>
-          <div class="muted small">Stripe aún no está conectado. No se realizará ningún cobro.</div>
-        </div>
-        <a class="btn alt" href="/dashboard">← Volver</a>
-      </div>
-    </div>
-  `, session.user));
+  const guildId = cleanText(req.query.guild, 100).trim();
+  if (!guildId) {
+    const serverLinks = session.guilds.map(guild =>
+      "<div class=\"card\"><div class=\"server\">" +
+      "<div class=\"server-icon\">" +
+        (discordIconUrl(guild) ? "<img src=\"" + escapeHtml(discordIconUrl(guild),300) + "\" alt=\"\">" : "◎") +
+      "</div>" +
+      "<div class=\"server-meta\"><div class=\"server-name\">" + escapeHtml(guild.name,100) + "</div>" +
+      "<div class=\"status\">Gestionar facturación de este servidor</div></div>" +
+      "<a class=\"btn\" href=\"/pricing?guild=" + encodeURIComponent(guild.id) + "\">Ver planes</a>" +
+      "</div></div>"
+    ).join("");
+
+    return res.send(htmlShell("Planes",
+      "<div class=\"hero\">" +
+      "<span class=\"pill\">SaaS · Stripe</span>" +
+      "<h1>Selecciona un servidor.</h1>" +
+      "<p>Los planes se contratan por servidor de Discord, no por cuenta global.</p>" +
+      "</div><div>" +
+      (serverLinks || "<div class=\"card\"><p class=\"muted\">No hay servidores gestionables.</p></div>") +
+      "</div>",
+      session.user
+    ));
+  }
+
+  const guild = session.guilds.find(g => g.id === guildId);
+  if (!guild) return res.status(403).send("No autorizado.");
+
+  const plan = await getGuildPlan(guild.id);
+  const planUpper = String(plan.plan || "free").toUpperCase();
+
+  const currentPlanBlock = plan.plan === "free"
+    ? "<span class=\"badge muted\">FREE</span>"
+    : "<span class=\"badge success\">" + escapeHtml(planUpper,20) + " · " + escapeHtml(plan.status,30) + "</span>";
+
+  const portalButton = plan.stripeCustomerId
+    ? "<a class=\"btn alt\" href=\"/billing/portal/" + encodeURIComponent(guild.id) + "\">Gestionar facturación</a>"
+    : "";
+
+  const proButton = plan.plan === "free"
+    ? "<form method=\"post\" action=\"/billing/checkout/" + encodeURIComponent(guild.id) + "/pro\" style=\"margin:0\"><button class=\"btn\" type=\"submit\">Contratar Pro · $6/mes</button></form>"
+    : "<span class=\"badge muted\">Plan ya activo</span>";
+
+  const lifetimeButton = plan.plan === "free"
+    ? "<form method=\"post\" action=\"/billing/checkout/" + encodeURIComponent(guild.id) + "/lifetime\" style=\"margin:0\"><button class=\"btn\" type=\"submit\">Comprar Lifetime · $30</button></form>"
+    : "<span class=\"badge muted\">Plan ya activo</span>";
+
+  return res.send(htmlShell("Planes",
+    "<div class=\"hero\">" +
+      "<span class=\"pill\">SaaS · " + escapeHtml(guild.name,100) + "</span>" +
+      "<h1>Planes AI Support.</h1>" +
+      "<p>Stripe Checkout gestiona el pago. El acceso se activa por servidor cuando Stripe confirma la compra.</p>" +
+    "</div>" +
+    "<div class=\"card\" style=\"margin-bottom:18px\"><div class=\"toolbar\">" +
+      "<div><strong>Servidor</strong><div class=\"muted small\">" + escapeHtml(guild.name,100) + "</div></div>" +
+      "<div class=\"actions\">" + currentPlanBlock + portalButton + "</div>" +
+    "</div></div>" +
+    "<div class=\"grid\">" +
+      "<div class=\"card\"><span class=\"pill\">FREE</span><h2 style=\"margin-top:12px\">Starter</h2><div class=\"kpi\">$0</div><p class=\"muted\">Para probar el sistema en un servidor.</p><div class=\"help\">Tickets, IA, Knowledge Base y soporte básico.</div></div>" +
+      "<div class=\"card\"><span class=\"pill\">PRO</span><h2 style=\"margin-top:12px\">Pro</h2><div class=\"kpi\">$6<span style=\"font-size:15px;color:#a1a1aa\">/mes</span></div><p class=\"muted\">Suscripción mensual para un servidor.</p><div class=\"help\">Checkout alojado por Stripe y renovación automática mensual.</div><div class=\"actions\" style=\"margin-top:16px\">" + proButton + "</div></div>" +
+      "<div class=\"card\"><span class=\"pill\">LIFETIME</span><h2 style=\"margin-top:12px\">Lifetime</h2><div class=\"kpi\">$30</div><p class=\"muted\">Pago único para ese servidor.</p><div class=\"help\">Sin renovación mensual mientras el plan Lifetime permanezca activo.</div><div class=\"actions\" style=\"margin-top:16px\">" + lifetimeButton + "</div></div>" +
+    "</div>" +
+    "<div class=\"card\" style=\"margin-top:18px\"><div class=\"toolbar\">" +
+      "<div><strong>Facturación segura</strong><div class=\"muted small\">" +
+        (stripe ? "Stripe está preparado para Checkout." : "Añade STRIPE_SECRET_KEY en Railway para activar los cobros.") +
+      "</div></div>" +
+      "<a class=\"btn alt\" href=\"/servers/" + encodeURIComponent(guild.id) + "\">← Volver al servidor</a>" +
+    "</div></div>",
+    session.user
+  ));
+});
+
+
+app.post("/billing/checkout/:guildId/:plan", async (req, res) => {
+  try {
+    const session = await currentSession(req);
+    if (!session) return res.redirect("/");
+
+    const guild = session.guilds.find(g => g.id === req.params.guildId);
+    if (!guild) return res.status(403).send("No autorizado.");
+
+    const plan = String(req.params.plan || "").toLowerCase();
+    if (!["pro", "lifetime"].includes(plan)) {
+      return res.status(400).send("Plan no válido.");
+    }
+
+    if (!stripe) {
+      return res.status(503).send(htmlShell("Stripe no configurado",
+        "<div class=\"card\"><h2>⚠️ Falta Stripe</h2><p class=\"muted\">Añade STRIPE_SECRET_KEY en Railway. El secreto nunca se guarda en GitHub.</p><a class=\"btn alt\" href=\"/pricing?guild=" + encodeURIComponent(guild.id) + "\">Volver</a></div>",
+        session.user
+      ));
+    }
+
+    const current = await getGuildPlan(guild.id);
+    if (current.plan !== "free") {
+      return res.status(409).send(htmlShell("Plan activo",
+        "<div class=\"card\"><h2>Plan ya activo</h2><p class=\"muted\">Este servidor ya tiene el plan " + escapeHtml(String(current.plan),30) + " (" + escapeHtml(String(current.status),30) + ").</p><div class=\"actions\">" +
+        (current.stripeCustomerId ? "<a class=\"btn\" href=\"/billing/portal/" + encodeURIComponent(guild.id) + "\">Gestionar facturación</a>" : "") +
+        "<a class=\"btn alt\" href=\"/servers/" + encodeURIComponent(guild.id) + "\">Volver</a></div></div>",
+        session.user
+      ));
+    }
+
+    const priceId = plan === "pro" ? config.stripeProPriceId : config.stripeLifetimePriceId;
+    if (!priceId) {
+      return res.status(503).send(htmlShell("Precio no configurado",
+        "<div class=\"card\"><h2>⚠️ Falta la configuración del precio</h2><p class=\"muted\">Configura el Price ID correspondiente en Railway.</p></div>",
+        session.user
+      ));
+    }
+
+    const metadata = {
+      guild_id: guild.id,
+      discord_user_id: session.user.id,
+      plan
+    };
+
+    const checkout = await stripe.checkout.sessions.create({
+      mode: plan === "pro" ? "subscription" : "payment",
+      client_reference_id: guild.id,
+      line_items: [{ price: priceId, quantity: 1 }],
+      metadata,
+      allow_promotion_codes: true,
+      success_url: config.dashboardUrl + "/servers/" + encodeURIComponent(guild.id) + "?billing=success",
+      cancel_url: config.dashboardUrl + "/pricing?guild=" + encodeURIComponent(guild.id) + "&billing=cancel",
+      ...(plan === "pro" ? { subscription_data: { metadata } } : {}),
+      ...(current.stripeCustomerId ? { customer: current.stripeCustomerId } : {})
+    });
+
+    if (!checkout.url) throw new Error("Stripe no devolvió una URL de Checkout.");
+    return res.redirect(303, checkout.url);
+  } catch (error) {
+    console.error("Stripe checkout error:", error);
+    const session = await currentSession(req);
+    return res.status(500).send(htmlShell("Error de facturación",
+      "<div class=\"card\"><h2>⚠️ No se pudo abrir Stripe Checkout</h2><p class=\"error\">" + escapeHtml(error.message,1000) + "</p><a class=\"btn alt\" href=\"/pricing?guild=" + encodeURIComponent(req.params.guildId || "") + "\">Volver</a></div>",
+      session?.user || null
+    ));
+  }
+});
+
+app.get("/billing/portal/:guildId", async (req, res) => {
+  try {
+    const session = await currentSession(req);
+    if (!session) return res.redirect("/");
+
+    const guild = session.guilds.find(g => g.id === req.params.guildId);
+    if (!guild) return res.status(403).send("No autorizado.");
+
+    if (!stripe) return res.status(503).send("Stripe no está configurado.");
+
+    const plan = await getGuildPlan(guild.id);
+    if (!plan.stripeCustomerId) {
+      return res.status(404).send("Este servidor todavía no tiene una cuenta de facturación.");
+    }
+
+    const portal = await stripe.billingPortal.sessions.create({
+      customer: plan.stripeCustomerId,
+      return_url: config.dashboardUrl + "/servers/" + encodeURIComponent(guild.id)
+    });
+
+    return res.redirect(303, portal.url);
+  } catch (error) {
+    console.error("Stripe portal error:", error);
+    return res.status(500).send("No se pudo abrir el portal de facturación.");
+  }
+});
+
+app.post("/api/stripe/webhook", async (req, res) => {
+  if (!stripe || !config.stripeWebhookSecret) {
+    return res.status(503).send("Stripe webhook no configurado.");
+  }
+
+  const signature = req.headers["stripe-signature"];
+  if (!signature || !req.rawBody) {
+    return res.status(400).send("Firma Stripe ausente.");
+  }
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.rawBody, signature, config.stripeWebhookSecret);
+  } catch (error) {
+    console.error("Stripe webhook signature error:", error.message);
+    return res.status(400).send("Webhook signature inválida.");
+  }
+
+  try {
+    const object = event.data.object;
+
+    if (event.type === "checkout.session.completed") {
+      const guildId = object.metadata?.guild_id;
+      const plan = object.metadata?.plan;
+      if (guildId && ["pro", "lifetime"].includes(plan)) {
+        await saveGuildSubscription({
+          guildId,
+          plan,
+          status: "active",
+          stripeCustomerId: typeof object.customer === "string" ? object.customer : null,
+          stripeSubscriptionId: typeof object.subscription === "string" ? object.subscription : null,
+          stripePriceId: plan === "pro" ? config.stripeProPriceId : config.stripeLifetimePriceId
+        });
+      }
+    }
+
+    if (event.type === "customer.subscription.updated") {
+      const guildId = object.metadata?.guild_id;
+      if (guildId) {
+        const subscriptionStatus = String(object.status || "active");
+        const normalizedStatus = ["active", "trialing"].includes(subscriptionStatus) ? "active" : subscriptionStatus;
+        await saveGuildSubscription({
+          guildId,
+          plan: "pro",
+          status: normalizedStatus,
+          stripeCustomerId: typeof object.customer === "string" ? object.customer : null,
+          stripeSubscriptionId: object.id,
+          stripePriceId: object.items?.data?.[0]?.price?.id || config.stripeProPriceId
+        });
+      }
+    }
+
+    if (event.type === "customer.subscription.deleted") {
+      const guildId = object.metadata?.guild_id;
+      if (guildId) {
+        await saveGuildSubscription({
+          guildId,
+          plan: "free",
+          status: "canceled",
+          stripeCustomerId: typeof object.customer === "string" ? object.customer : null,
+          stripeSubscriptionId: null,
+          stripePriceId: null
+        });
+      }
+    }
+
+    return res.json({ received: true });
+  } catch (error) {
+    console.error("Stripe webhook processing error:", error);
+    return res.status(500).send("Webhook processing error.");
+  }
 });
 
 app.get("/servers/:guildId/install", async (req, res) => {
@@ -567,7 +776,7 @@ app.get("/servers/:guildId", async (req, res) => {
                     <h3 style="margin-top:10px">Plan ${escapeHtml(String(plan.plan),20)}</h3>
                     <p class="muted">Estado: ${escapeHtml(plan.status,30)} · Los planes y cobros se aplicarán por servidor.</p>
                   </div>
-                  <a class="btn" href="/pricing">Gestionar plan</a>
+                  <a class="btn" href="/pricing?guild=${encodeURIComponent(guild.id)}">Gestionar plan</a>
                 </div>
               </div>
             </section>
