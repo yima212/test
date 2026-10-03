@@ -21,7 +21,7 @@ y después explica brevemente al usuario que el equipo deberá revisar el caso.
 - Si NO hace falta una persona, no uses [ESCALATE].
 `;
 
-async function answerWithAI({ history }) {
+async function answerWithAI({ history, guildConfig = {} }) {
   if (!config.geminiKey) {
     return {
       text: "Necesito que el equipo configure el asistente IA antes de continuar.",
@@ -32,10 +32,15 @@ async function answerWithAI({ history }) {
   const model = config.aiModel || "gemini-3.5-flash-lite";
   const url = `${GEMINI_URL}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(config.geminiKey)}`;
 
+  const knowledge = String(guildConfig.knowledge || "").trim();
+  const knowledgePrompt = knowledge
+    ? "\n\nBASE DE CONOCIMIENTO DEL SERVIDOR (usar como fuente prioritaria; no inventar datos fuera de ella):\n" + knowledge
+    : "\n\nBASE DE CONOCIMIENTO DEL SERVIDOR: no configurada. Si la respuesta depende de reglas o información específica del servidor y no aparece en el contexto, indica que no está disponible y escala cuando sea necesario.";
+
   const contents = [
     {
       role: "user",
-      parts: [{ text: SYSTEM_PROMPT }]
+      parts: [{ text: SYSTEM_PROMPT + knowledgePrompt }]
     },
     ...history.map(m => ({
       role: m.role === "assistant" ? "model" : "user",
