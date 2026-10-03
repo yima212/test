@@ -8,6 +8,7 @@ const {
   saveGuildConfig,
   getGuildDashboardStats,
   getRecentGuildTickets,
+  getGuildTicketActivity,
   createDashboardSession,
   getDashboardSession,
   deleteDashboardSession,
@@ -299,6 +300,7 @@ function htmlShell(title, body, user = null) {
 @media(max-width:980px){.app-shell,.admin-layout{grid-template-columns:1fr}.app-sidebar,.admin-sidebar{position:static;display:flex;overflow:auto;gap:6px}.side-group{display:none}.side-link{white-space:nowrap}.metric-grid{grid-template-columns:repeat(2,1fr)}.two-col{grid-template-columns:1fr}}
 @media(max-width:680px){.metric-grid{grid-template-columns:1fr}.page-top{margin-top:24px}.page-top h1{font-size:35px}.stats-strip{grid-template-columns:1fr 1fr}.code-box{grid-template-columns:1fr}.app-sidebar,.admin-sidebar{padding:7px}.profile-banner{align-items:flex-start;flex-direction:column}}
 
+ .real-activity{height:205px;display:flex;align-items:flex-end;gap:8px;padding:18px 6px 0}.activity-column{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px}.activity-column .activity-bar{width:100%;max-width:34px;min-height:8px}.activity-column span{color:#676a7f;font-size:9px}.activity-axis{display:flex;justify-content:space-between;color:#676a7f;font-size:9px;padding:5px 8px 0}
 </style>
 </head>
 <body><div class="wrap">
@@ -966,22 +968,36 @@ app.post("/api/servers/:guildId/activation-code", rateLimit("activation-redeem",
   }
 });
 
+
 app.get("/dashboard", async (req, res) => {
   const session = await currentSession(req);
   if (!session) return res.redirect("/");
 
-  const connectedGuild = session.guilds.find(g => client.guilds.cache.has(g.id)) || session.guilds[0] || null;
+  const requestedGuildId = cleanText(req.query.guild, 100).trim();
+  let connectedGuild = requestedGuildId
+    ? session.guilds.find(g => g.id === requestedGuildId) || null
+    : session.guilds.find(g => client.guilds.cache.has(g.id)) || session.guilds[0] || null;
+
+  if (connectedGuild) {
+    const liveGuild = client.guilds.cache.get(connectedGuild.id);
+    if (liveGuild && !(await userCanManageGuild(liveGuild, session.user.id))) {
+      return res.status(403).send("No autorizado.");
+    }
+  }
+
   let stats = { totalTickets:0, openTickets:0, closedTickets:0, escalatedTickets:0, totalMessages:0 };
   let usage = { ticketsCreated:0, aiResponses:0 };
-  let plan = { plan:"free", status:"active" };
+  let plan = { plan:"free", status:"active", stripeCustomerId:null };
   let definition = getPlanDefinition("free");
+  let activity = [];
 
   if (connectedGuild) {
     try {
-      [stats, usage, plan] = await Promise.all([
+      [stats, usage, plan, activity] = await Promise.all([
         getGuildDashboardStats(connectedGuild.id),
         getGuildUsage(connectedGuild.id),
-        getGuildPlan(connectedGuild.id)
+        getGuildPlan(connectedGuild.id),
+        getGuildTicketActivity(connectedGuild.id, 30)
       ]);
       definition = getPlanDefinition(plan.status === "active" ? normalizePlan(plan.plan) : "free");
     } catch (error) {
@@ -991,28 +1007,45 @@ app.get("/dashboard", async (req, res) => {
 
   const ticketPct = Math.min(100, Math.round((usage.ticketsCreated / Math.max(1, definition.ticketsPerMonth)) * 100));
   const aiPct = Math.min(100, Math.round((usage.aiResponses / Math.max(1, definition.aiRepliesPerMonth)) * 100));
-  const closeBase = Math.max(1, stats.totalTickets);
-  const openPct = Math.round(stats.openTickets / closeBase * 100);
-  const closedPct = Math.round(stats.closedTickets / closeBase * 100);
-  const escalatedPct = Math.round(stats.escalatedTickets / closeBase * 100);
-  const serverIcon = connectedGuild ? discordIconUrl(connectedGuild) : "";
+  const totalTickets = Math.max(0, Number(stats.totalTickets || 0));
+  const openPct = totalTickets ? Math.round(Number(stats.openTickets || 0) / totalTickets * 100) : 0;
+  const closedPct = totalTickets ? Math.round(Number(stats.closedTickets || 0) / totalTickets * 100) : 0;
+  const escalatedPct = totalTickets ? Math.round(Number(stats.escalatedTickets || 0) / totalTickets * 100) : 0;
+  const donut = totalTickets
+    ? "background:conic-gradient(var(--brand) 0 " + openPct + "%,#44d8ff " + openPct + "% " + Math.min(100, openPct + closedPct) + "%,#ffbf5f " + Math.min(100, openPct + closedPct) + "% " + Math.min(100, openPct + closedPct + Math.max(0, escalatedPct / 3)) + "%,#4b4c5a 0 100%)"
+    : "background:#3d4050";
 
-  const serverOptions = session.guilds.map(g => '<option value="' + escapeHtml(g.id,80) + '"' + (connectedGuild && g.id === connectedGuild.id ? ' selected' : '') + '>' + escapeHtml(g.name,100) + '</option>').join("");
+  const maxActivity = Math.max(1, ...activity.map(x => Number(x.tickets || 0)));
+  const recentActivity = activity.slice(-14);
+  const activityBars = recentActivity.map(x => {
+    const value = Number(x.tickets || 0);
+    const height = Math.max(8, Math.round(value / maxActivity * 88));
+    const label = new Intl.DateTimeFormat("es-ES", { day:"2-digit", month:"short", timeZone:"Europe/Madrid" }).format(new Date(x.day));
+    return '<div class="activity-column" title="' + escapeHtml(label + " · " + value + " ticket(s)", 100) + '"><div class="activity-bar" style="height:' + height + '%"></div><span>' + escapeHtml(label.split(" ")[0], 10) + '</span></div>';
+  }).join("");
+
+  const serverOptions = session.guilds.map(g => '<option value="' + escapeHtml(g.id,80) + '"' + (connectedGuild && g.id === connectedGuild.id ? " selected" : "") + '>' + escapeHtml(g.name,100) + '</option>').join("");
+
   const serverCards = session.guilds.map(g => {
     const inBot = client.guilds.cache.has(g.id);
     const icon = discordIconUrl(g);
-    return '<a class="card" href="' + (inBot ? '/servers/' + encodeURIComponent(g.id) : '/servers/' + encodeURIComponent(g.id) + '/install') + '">' +
+    return '<a class="card" href="/dashboard?guild=' + encodeURIComponent(g.id) + '">' +
       '<div class="server-card"><div class="server-icon">' + (icon ? '<img src="' + escapeHtml(icon,300) + '" alt="">' : '◎') + '</div>' +
-      '<div class="server-meta"><div class="server-name">' + escapeHtml(g.name,100) + '</div><div class="status"><span class="status-dot ' + (inBot ? 'online' : 'offline') + '"></span>' + (inBot ? 'Bot conectado' : 'Pendiente de instalar') + '</div></div>' +
-      '<span class="btn btn-sm ' + (inBot ? '' : 'alt') + '">' + (inBot ? 'Abrir' : 'Añadir') + '</span></div></a>';
+      '<div class="server-meta"><div class="server-name">' + escapeHtml(g.name,100) + '</div><div class="status"><span class="status-dot ' + (inBot ? "online" : "offline") + '"></span>' + (inBot ? "Bot conectado" : "Pendiente de instalar") + '</div></div>' +
+      '<span class="btn btn-sm ' + (inBot ? "" : "alt") + '">' + (inBot ? "Abrir" : "Seleccionar") + '</span></div></a>';
   }).join("");
+
+  const serverIcon = connectedGuild ? discordIconUrl(connectedGuild) : "";
+  const serverActions = connectedGuild
+    ? '<a class="btn btn-sm" href="/servers/' + encodeURIComponent(connectedGuild.id) + '">Abrir configuración</a>'
+    : '';
 
   res.send(htmlShell("Dashboard", `
     <div class="app-shell fade-in">
       <aside class="app-sidebar">
         <div class="server-switch">
           <div class="mini-icon">${serverIcon ? '<img src="' + escapeHtml(serverIcon,300) + '" alt="">' : '◎'}</div>
-          <div class="name"><strong>${escapeHtml(connectedGuild?.name || "Mi servidor",100)}</strong><span>${connectedGuild ? "Servidor seleccionado" : "Sin servidor"}</span></div>
+          <div class="name"><strong>${escapeHtml(connectedGuild?.name || "Mi servidor",100)}</strong><span>Servidor seleccionado</span></div>
           <span>⌄</span>
         </div>
         <div class="side-group">Workspace</div>
@@ -1029,10 +1062,21 @@ app.get("/dashboard", async (req, res) => {
       <main class="app-main">
         <div class="page-top">
           <div><span class="pill">Dashboard principal</span><h1>Hola, ${escapeHtml(session.user.username,80)} 👋</h1><p>Gestiona tu bot y tu soporte desde aquí.</p></div>
-          <div class="dashboard-actions"><a class="btn btn-sm" href="/onboarding">🚀 Primeros pasos</a><a class="btn alt btn-sm" href="/pricing">Ver planes</a></div>
+          <div class="dashboard-actions">${serverActions}<a class="btn alt btn-sm" href="/onboarding">Primeros pasos</a></div>
         </div>
 
-        ${connectedGuild ? '<div class="profile-banner"><div><strong>' + escapeHtml(connectedGuild.name,100) + '</strong><div class="help">Métricas del servidor seleccionado · datos actuales</div></div><div class="badge success">● BOT ONLINE</div></div>' : ''}
+        <div class="profile-banner">
+          <div>
+            <strong>${escapeHtml(connectedGuild?.name || "Selecciona un servidor",100)}</strong>
+            <div class="help">Métricas en tiempo real · cambia de servidor desde aquí</div>
+          </div>
+          <div>
+            <select onchange="if(this.value) location.href='/dashboard?guild='+encodeURIComponent(this.value)" style="min-width:190px">
+              <option value="">Cambiar servidor</option>
+              ${serverOptions}
+            </select>
+          </div>
+        </div>
 
         <div class="metric-grid">
           <div class="metric-card"><div class="metric-top"><span>Tickets este mes</span><span class="metric-icon">▣</span></div><div class="metric-value">${usage.ticketsCreated} <span style="font-size:13px;color:var(--muted)">/ ${definition.ticketsPerMonth}</span></div><div class="progress" style="margin-top:10px"><span style="width:${ticketPct}%"></span></div><div class="metric-sub">${ticketPct}% del límite actual</div></div>
@@ -1043,34 +1087,31 @@ app.get("/dashboard", async (req, res) => {
         <section class="section-block" style="padding-bottom:0">
           <div class="two-col">
             <div class="panel-card">
-              <div class="section-head" style="margin-bottom:3px"><div><span class="pill">Actividad</span><h2>Actividad de tickets</h2><p>Visualización del estado actual del soporte.</p></div><span class="pill">Último ciclo</span></div>
-              <div class="activity-bars">
-                <div class="activity-bar" style="height:${Math.max(18, Math.min(86, 20 + (stats.openTickets * 7)))}%"></div>
-                <div class="activity-bar" style="height:${Math.max(25, Math.min(91, 18 + (stats.closedTickets * 5)))}%"></div>
-                <div class="activity-bar" style="height:${Math.max(14, Math.min(80, 16 + (stats.totalTickets * 4)))}%"></div>
-                <div class="activity-bar" style="height:${Math.max(24, Math.min(95, 24 + (stats.totalMessages % 60)))}%"></div>
-                <div class="activity-bar" style="height:${Math.max(20, Math.min(88, 20 + (stats.escalatedTickets * 9)))}%"></div>
-                <div class="activity-bar" style="height:${Math.max(18, Math.min(92, 26 + (usage.ticketsCreated * 3)))}%"></div>
-                <div class="activity-bar" style="height:${Math.max(22, Math.min(96, 28 + (usage.aiResponses % 70)))}%"></div>
+              <div class="section-head" style="margin-bottom:3px"><div><span class="pill">Últimos 14 días</span><h2>Actividad de tickets</h2><p>Tickets creados por día a partir de PostgreSQL.</p></div><span class="pill">${totalTickets} total</span></div>
+              <div class="activity-bars real-activity">
+                ${activityBars || '<div class="empty"><div class="feature-icon">▣</div><h3>Sin actividad todavía</h3><p>Cuando entren tickets aparecerán aquí.</p></div>'}
               </div>
-              <div class="activity-axis"><span>Inicio</span><span>Actual</span></div>
+              ${recentActivity.length ? '<div class="activity-axis"><span>' + escapeHtml(recentActivity[0].day,30) + '</span><span>' + escapeHtml(recentActivity[recentActivity.length-1].day,30) + '</span></div>' : ''}
             </div>
             <div class="panel-card">
-              <div class="section-head" style="margin-bottom:12px"><div><span class="pill">Distribución</span><h2>Tipos / estado</h2></div></div>
+              <div class="section-head" style="margin-bottom:12px"><div><span class="pill">Distribución</span><h2>Tipos / estado</h2><p>Reparto actual del soporte.</p></div></div>
               <div class="donut-wrap">
-                <div class="donut"></div>
+                <div class="donut" style="${donut}"></div>
                 <div class="legend">
                   <div class="legend-row"><span><span class="legend-dot"></span>Abiertos</span><b>${openPct}%</b></div>
                   <div class="legend-row"><span><span class="legend-dot"></span>Cerrados</span><b>${closedPct}%</b></div>
                   <div class="legend-row"><span><span class="legend-dot"></span>Escalados</span><b>${escalatedPct}%</b></div>
-                  <div class="legend-row"><span><span class="legend-dot"></span>Total</span><b>${stats.totalTickets}</b></div>
+                  <div class="legend-row"><span><span class="legend-dot"></span>Total</span><b>${totalTickets}</b></div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section class="section-block" id="servers"><div class="section-head"><div><span class="pill">Servidores</span><h2>Tus servidores.</h2><p>Selecciona dónde quieres trabajar.</p></div></div><div class="grid">${serverCards || '<div class="card empty" style="grid-column:1/-1"><div class="feature-icon">☁️</div><h3>No hay servidores gestionables</h3><p>Autoriza una cuenta de Discord con permisos suficientes.</p></div>'}</div></section>
+        <section class="section-block" id="servers">
+          <div class="section-head"><div><span class="pill">Servidores</span><h2>Tus servidores.</h2><p>Selecciona dónde quieres trabajar.</p></div></div>
+          <div class="grid">${serverCards || '<div class="card empty" style="grid-column:1/-1"><div class="feature-icon">☁️</div><h3>No hay servidores gestionables</h3><p>Autoriza una cuenta de Discord con permisos suficientes.</p></div>'}</div>
+        </section>
       </main>
     </div>
   `, session.user));
