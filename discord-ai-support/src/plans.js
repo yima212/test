@@ -4,9 +4,9 @@ const PLAN_DEFINITIONS = {
     name: "Starter",
     price: "$0",
     billing: "Sin coste",
-    ticketsPerMonth: 50,
-    aiRepliesPerMonth: 100,
-    knowledgeChars: 10000,
+    ticketsPerMonth: 10,
+    aiRepliesPerMonth: 50,
+    knowledgeChars: 5000,
     features: [
       "Tickets privados",
       "Asistente IA multilingüe",
