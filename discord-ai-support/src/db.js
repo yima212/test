@@ -84,6 +84,22 @@ async function initDatabase() {
   `);
 
   await p.query(`
+    CREATE TABLE IF NOT EXISTS guild_usage_monthly (
+      guild_id TEXT NOT NULL,
+      usage_month TEXT NOT NULL,
+      tickets_created INTEGER NOT NULL DEFAULT 0,
+      ai_responses INTEGER NOT NULL DEFAULT 0,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (guild_id, usage_month)
+    )
+  `);
+
+  await p.query(`
+    CREATE INDEX IF NOT EXISTS idx_guild_usage_monthly_month
+    ON guild_usage_monthly (usage_month)
+  `);
+
+  await p.query(`
     CREATE TABLE IF NOT EXISTS guild_configs (
       guild_id TEXT PRIMARY KEY,
       founder_id TEXT,
@@ -405,6 +421,91 @@ async function saveGuildSubscription({
   return getGuildPlan(guildId);
 }
 
+async function getGuildUsage(guildId) {
+  const result = await getPool().query(
+    `SELECT
+       COALESCE((
+         SELECT COUNT(*)::int
+         FROM tickets
+         WHERE guild_id = $1
+           AND created_at >= date_trunc('month', NOW() AT TIME ZONE 'Europe/Madrid') AT TIME ZONE 'Europe/Madrid'
+           AND created_at < (date_trunc('month', NOW() AT TIME ZONE 'Europe/Madrid') + INTERVAL '1 month') AT TIME ZONE 'Europe/Madrid'
+       ), 0) AS tickets_created,
+       COALESCE((
+         SELECT ai_responses
+         FROM guild_usage_monthly
+         WHERE guild_id = $1
+           AND usage_month = to_char(NOW() AT TIME ZONE 'Europe/Madrid', 'YYYY-MM')
+       ), 0)::int AS ai_responses`,
+    [guildId]
+  );
+
+  const row = result.rows[0] || {};
+  return {
+    ticketsCreated: Number(row.tickets_created || 0),
+    aiResponses: Number(row.ai_responses || 0),
+    month: new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Europe/Madrid",
+      year: "numeric",
+      month: "2-digit"
+    }).format(new Date())
+  };
+}
+
+async function consumeGuildQuota(guildId, metric, limit) {
+  const column = metric === "ai" ? "ai_responses" : metric === "tickets" ? "tickets_created" : null;
+  if (!column) throw new Error("Métrica de cuota no válida.");
+
+  const safeLimit = Math.max(0, Number(limit) || 0);
+  if (safeLimit === 0) return false;
+
+  const p = getPool();
+
+  if (metric === "tickets") {
+    const result = await p.query(
+      `SELECT COUNT(*)::int AS count
+       FROM tickets
+       WHERE guild_id = $1
+         AND created_at >= date_trunc('month', NOW() AT TIME ZONE 'Europe/Madrid') AT TIME ZONE 'Europe/Madrid'
+         AND created_at < (date_trunc('month', NOW() AT TIME ZONE 'Europe/Madrid') + INTERVAL '1 month') AT TIME ZONE 'Europe/Madrid'`,
+      [guildId]
+    );
+    return Number(result.rows[0]?.count || 0) < safeLimit;
+  }
+
+  await p.query(
+    `INSERT INTO guild_usage_monthly (guild_id, usage_month, ai_responses)
+     VALUES ($1, to_char(NOW() AT TIME ZONE 'Europe/Madrid', 'YYYY-MM'), 1)
+     ON CONFLICT (guild_id, usage_month)
+     DO NOTHING`,
+    [guildId]
+  );
+
+  const result = await p.query(
+    `UPDATE guild_usage_monthly
+     SET ai_responses = ai_responses + 1, updated_at = NOW()
+     WHERE guild_id = $1
+       AND usage_month = to_char(NOW() AT TIME ZONE 'Europe/Madrid', 'YYYY-MM')
+       AND ai_responses < $2
+     RETURNING ai_responses`,
+    [guildId, safeLimit]
+  );
+
+  return result.rowCount > 0;
+}
+
+async function releaseGuildQuota(guildId, metric) {
+  if (metric !== "ai") return;
+
+  await getPool().query(
+    `UPDATE guild_usage_monthly
+     SET ai_responses = GREATEST(ai_responses - 1, 0), updated_at = NOW()
+     WHERE guild_id = $1
+       AND usage_month = to_char(NOW() AT TIME ZONE 'Europe/Madrid', 'YYYY-MM')`,
+    [guildId]
+  );
+}
+
 async function getGuildDashboardStats(guildId) {
   const result = await getPool().query(
     `SELECT
@@ -473,5 +574,8 @@ module.exports = {
   consumeOAuthState,
   cleanupExpiredSessions,
   getGuildPlan,
-  saveGuildSubscription
+  saveGuildSubscription,
+  getGuildUsage,
+  consumeGuildQuota,
+  releaseGuildQuota
 };
