@@ -20,6 +20,6 @@ module.exports = {
   founderId: (process.env.FOUNDER_USER_ID || "").trim(),
   ticketCategoryId: process.env.TICKET_CATEGORY_ID || null,
   staffRoleId: process.env.STAFF_ROLE_ID || null,
-  openaiKey: (process.env.OPENAI_API_KEY || "").trim() || null,
-  aiModel: process.env.AI_MODEL || "gpt-5.6"
+  geminiKey: (process.env.GEMINI_API_KEY || "").trim() || null,
+  aiModel: process.env.AI_MODEL || "gemini-2.5-flash-lite"
 };
