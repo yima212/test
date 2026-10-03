@@ -405,6 +405,14 @@ function htmlShell(title, body, user = null) {
 .reference-below{padding-top:34px!important}
 @media(max-width:980px){.reference-hero-inner{padding:30px 24px 0}.reference-hero-grid{grid-template-columns:1fr}.reference-art{min-height:360px}.reference-copy h1{font-size:50px!important}.reference-callout{display:none}}
 @media(max-width:680px){.landing-page .site-nav{margin:0 -15px}.reference-hero-frame{border-radius:14px}.reference-hero-inner{padding:24px 18px 0}.reference-copy h1{font-size:43px!important}.reference-copy p{font-size:15px!important}.reference-art{min-height:320px}.reference-robot{transform:scale(.78)}.reference-stats{grid-template-columns:1fr 1fr}.reference-stat{padding:13px 14px}.reference-stat strong{font-size:17px}.reference-below{padding-top:24px!important}}
+
+/* Use licensed/open robot artwork in the landing hero */
+.robot-photo-stage{position:relative;width:410px;height:410px;display:flex;align-items:center;justify-content:center}
+.robot-photo-stage:before{content:"";position:absolute;width:335px;height:335px;border-radius:50%;background:radial-gradient(circle,rgba(103,95,255,.38),rgba(50,77,160,.16) 40%,transparent 72%);filter:blur(11px)}
+.robot-photo-stage:after{content:"";position:absolute;inset:40px;border-radius:50%;border:1px solid rgba(96,124,255,.30);box-shadow:0 0 75px rgba(79,93,255,.22),inset 0 0 55px rgba(80,100,255,.08);pointer-events:none}
+.reference-robot-photo{position:relative;z-index:2;width:360px;height:390px;object-fit:contain;object-position:center;filter:drop-shadow(0 30px 42px rgba(0,0,0,.42)) drop-shadow(0 0 35px rgba(80,100,255,.25))}
+@media(max-width:980px){.robot-photo-stage{width:360px;height:360px}.reference-robot-photo{width:320px;height:350px}}
+@media(max-width:680px){.robot-photo-stage{width:315px;height:320px}.reference-robot-photo{width:285px;height:305px}}
 </style>
 </head>
 <body class="${title === "AI Support" ? "landing-page" : ""}"><div class="wrap">
@@ -558,14 +566,10 @@ app.get("/", async (req, res) => {
               <div class="reference-orb"></div><div class="reference-stars"></div>
               <span class="reference-callout c1">🎫 Tickets automáticos</span>
               <span class="reference-callout c2">✦ IA con Gemini</span>
-              <span class="reference-callout c3">🌍 Multilinguaje</span>
+              <span class="reference-callout c3">🌍 Multilenguaje</span>
               <span class="reference-callout c4">🛎️ Escalado a staff</span>
-              <div class="reference-robot">
-                <div class="reference-robot-halo"></div>
-                <div class="reference-antenna"></div>
-                <div class="reference-robot-head"><span class="reference-eye l"></span><span class="reference-eye r"></span><span class="reference-mouth"></span></div>
-                <div class="reference-body"><span class="reference-chest">◆</span></div>
-                <span class="reference-arm l"></span><span class="reference-arm r"></span>
+              <div class="robot-photo-stage">
+                <img class="reference-robot-photo" src="https://spaces-cdn.clipsafari.com/sbgzs4515c3wqqo5g6ebpw910nbs" alt="Robot mascot" loading="eager" decoding="async">
               </div>
             </div>
           </div>
