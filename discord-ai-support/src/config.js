@@ -21,5 +21,5 @@ module.exports = {
   ticketCategoryId: process.env.TICKET_CATEGORY_ID || null,
   staffRoleId: process.env.STAFF_ROLE_ID || null,
   geminiKey: (process.env.GEMINI_API_KEY || "").trim() || null,
-  aiModel: process.env.AI_MODEL || "gemini-2.5-flash-lite"
+  aiModel: process.env.AI_MODEL || "gemini-3.5-flash-lite"
 };
