@@ -248,6 +248,8 @@ app.get("/servers/:guildId", async (req, res) => {
         <input name="founderId" value="${cleanText(cfg.founderId,100)}" placeholder="ID de Discord">
         <label>Staff Role ID</label>
         <input name="staffRoleId" value="${cleanText(cfg.staffRoleId,100)}" placeholder="ID del rol de staff/moderación">
+        <label>Ticket Category ID</label>
+        <input name="ticketCategoryId" value="${cleanText(cfg.ticketCategoryId,100)}" placeholder="ID de la categoría donde crear tickets">
         <label>Mensaje de bienvenida</label>
         <textarea name="welcomeText">${cleanText(cfg.welcomeText,1000)}</textarea>
         <label>Base de conocimiento</label>
@@ -272,6 +274,7 @@ app.post("/api/servers/:guildId", async (req, res) => {
   await saveGuildConfig(guild.id, {
     founderId: cleanText(body.founderId,100).trim() || config.founderId,
     staffRoleId: cleanText(body.staffRoleId,100).trim(),
+    ticketCategoryId: cleanText(body.ticketCategoryId,100).trim(),
     welcomeText: cleanText(body.welcomeText,1000).trim(),
     knowledge: cleanText(body.knowledge,10000)
   });
