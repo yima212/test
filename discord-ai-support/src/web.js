@@ -2,6 +2,7 @@ const express = require("express");
 const crypto = require("crypto");
 
 const config = require("./config");
+const { getGuildConfig, saveGuildConfig } = require("./db");
 
 const app = express();
 app.use(express.json({ limit: "32kb" }));
@@ -9,16 +10,7 @@ app.use(express.urlencoded({ extended: false, limit: "32kb" }));
 
 const sessions = new Map();
 const oauthStates = new Map();
-const guildConfigs = new Map();
 
-function getGuildConfig(guildId) {
-  return guildConfigs.get(guildId) || {
-    staffRoleId: config.staffRoleId || "",
-    founderId: config.founderId || "",
-    welcomeText: "Hola 👋 Cuéntame qué necesitas.",
-    knowledge: ""
-  };
-}
 
 const DISCORD_API = "https://discord.com/api/v10";
 const BOT_PERMISSIONS = "93200";
@@ -237,7 +229,7 @@ app.get("/dashboard", (req, res) => {
   `, session.user));
 });
 
-app.get("/servers/:guildId", (req, res) => {
+app.get("/servers/:guildId", async (req, res) => {
   const session = currentSession(req);
   if (!session) return res.redirect("/");
   const guild = session.guilds.find(g => g.id === req.params.guildId);
@@ -246,7 +238,7 @@ app.get("/servers/:guildId", (req, res) => {
   const botIn = Boolean(client.guilds.cache.get(guild.id));
   if (!botIn) return res.redirect("/dashboard");
 
-  const cfg = getGuildConfig(guild.id);
+  const cfg = await getGuildConfig(guild.id);
 
   res.send(htmlShell("Servidor", `
     <div class="hero"><span class="pill">${cleanText(guild.name)}</span><h1>Configuración</h1><p>Los cambios se aplican al servidor cuando guardes.</p></div>
@@ -270,14 +262,14 @@ app.get("/servers/:guildId", (req, res) => {
   `, session.user));
 });
 
-app.post("/api/servers/:guildId", (req, res) => {
+app.post("/api/servers/:guildId", async (req, res) => {
   const session = currentSession(req);
   if (!session) return res.status(401).send("Sesión requerida.");
   const guild = session.guilds.find(g => g.id === req.params.guildId);
   if (!guild || !client.guilds.cache.get(guild.id)) return res.status(403).send("No autorizado.");
 
   const body = req.body || {};
-  guildConfigs.set(guild.id, {
+  await saveGuildConfig(guild.id, {
     founderId: cleanText(body.founderId,100).trim() || config.founderId,
     staffRoleId: cleanText(body.staffRoleId,100).trim(),
     welcomeText: cleanText(body.welcomeText,1000).trim(),
@@ -294,5 +286,4 @@ module.exports = {
       console.log(`🌐 Dashboard: ${config.dashboardUrl}`);
     });
   },
-  getGuildConfig
 };
