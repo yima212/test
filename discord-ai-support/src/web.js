@@ -8,6 +8,7 @@ const {
   saveGuildConfig,
   getGuildDashboardStats,
   getRecentGuildTickets,
+  getGuildTicketTypeStats,
   getGuildTicketActivity,
   createDashboardSession,
   getDashboardSession,
@@ -414,84 +415,50 @@ app.get("/", async (req, res) => {
   if (session) return res.redirect("/dashboard");
 
   const plans = Object.values(PLAN_DEFINITIONS).map(def => {
-    const suffix = def.key === "pro" ? '<span>/mes</span>' : (def.key === "lifetime" ? '<span> único</span>' : '<span>/mes</span>');
-    const action = def.key === "free" ? "Empezar gratis" : (def.key === "pro" ? "Suscribirse" : "Comprar Lifetime");
-    return '<article class="card price-card ' + (def.key === "pro" ? "featured" : "") + '">' +
-      (def.key === "pro" ? '<div class="price-badge">MÁS USADO</div>' : '') +
-      '<div class="price-name">' + escapeHtml(def.name,40) + '</div>' +
-      '<div class="price-value">' + escapeHtml(def.price,20) + suffix + '</div>' +
-      '<p>' + escapeHtml(def.key === "free" ? "Ideal para empezar" : def.key === "pro" ? "Para servidores en crecimiento" : "Pago único, para siempre", 100) + '</p>' +
-      '<div class="price-list"><div>✓ ' + formatLimit(def.ticketsPerMonth,"tickets/mes") + '</div><div>✓ ' + formatLimit(def.aiRepliesPerMonth,"respuestas IA/mes") + '</div><div>✓ ' + formatLimit(def.knowledgeChars,"caracteres KB") + '</div></div>' +
-      '<a class="btn ' + (def.key === "pro" ? "" : "alt") + '" href="/auth/discord">' + action + '</a></article>';
+    const suffix = def.key === "pro" ? "<span>/mes</span>" : (def.key === "lifetime" ? "<span> único</span>" : "<span>/mes</span>");
+    const action = def.key === "free" ? "Empezar gratis" : (def.key === "pro" ? "Suscribirse con Stripe" : "Comprar Lifetime");
+    const features = [formatLimit(def.ticketsPerMonth,"tickets/mes"), formatLimit(def.aiRepliesPerMonth,"respuestas IA/mes"), formatLimit(def.knowledgeChars,"caracteres KB")].map(x => "<div>✓ <b>"+escapeHtml(x,100)+"</b></div>").join("");
+    return "<article class=\"card price-card "+(def.key==="pro"?"featured":"")+"\">"+
+      (def.key==="pro" ? "<div class=\"price-badge\">MÁS USADO</div>" : "")+
+      "<div class=\"price-name\">"+escapeHtml(def.name,40)+"</div>"+
+      "<div class=\"price-value\">"+escapeHtml(def.price,20)+suffix+"</div>"+
+      "<p>"+escapeHtml(def.key==="free"?"Ideal para empezar":def.key==="pro"?"Para servidores en crecimiento":"Pago único, para siempre",100)+"</p>"+
+      "<div class=\"price-list\">"+features+def.features.map(x => "<div>✓ "+escapeHtml(x,120)+"</div>").join("")+"</div>"+
+      "<a class=\"btn "+(def.key==="pro"?"":"alt")+" \" href=\"/auth/discord\">"+action+"</a></article>";
   }).join("");
 
   res.send(htmlShell("AI Support", `
-    <section class="hero">
-      <div class="hero-grid">
-        <div>
-          <div class="eyebrow"><span class="eyebrow-dot"></span>Discord support · powered by AI</div>
-          <h1>Automatiza el soporte de tu servidor con <span style="background:linear-gradient(90deg,#8e82ff,#44d8ff);-webkit-background-clip:text;background-clip:text;color:transparent">Inteligencia Artificial</span>.</h1>
-          <p>Tickets privados, respuestas IA, Knowledge Base, soporte multilingüe y escalado a staff, todo en un solo lugar.</p>
-          <div class="hero-actions"><a class="btn" href="/auth/discord">🚀 Invitar al bot</a><a class="btn alt" href="#pricing">Ver precios</a></div>
-          <div class="hero-trust"><span>✓ <b>Tickets automáticos</b></span><span>✓ <b>Gemini AI</b></span><span>✓ <b>Multilingüe</b></span><span>✓ <b>Escalado a staff</b></span></div>
-        </div>
-        <div class="visual-wrap">
-          <div class="glow"></div>
-          <div class="ticket-ui">
-            <div class="ticket-top"><div class="ticket-title"><div class="ticket-icon">◉</div><div><strong>AI Support</strong><span>tu servidor · IA activa</span></div></div><div class="ticket-status">● ONLINE</div></div>
-            <div style="display:grid;grid-template-columns:170px 1fr;gap:14px;padding:15px 6px">
-              <div class="card" style="padding:14px;background:rgba(255,255,255,.025)">
-                <div style="font-size:10px;color:#8e91a5;font-weight:900;text-transform:uppercase">Tickets automáticos</div>
-                <div style="font-size:28px;font-weight:950;margin-top:7px">24/7</div>
-                <div class="help">Sin intervención inicial</div>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:center">
-                <div style="position:relative;width:175px;height:175px;border-radius:50%;background:radial-gradient(circle at 48% 34%,#242437 0 34%,#11111c 35% 100%);border:1px solid rgba(142,130,255,.25);box-shadow:0 0 75px rgba(109,93,252,.28)">
-                  <div style="position:absolute;left:28px;right:28px;top:28px;height:72px;border-radius:36px;background:linear-gradient(160deg,#e9e9f2,#999bb1);box-shadow:inset 0 -7px 12px rgba(0,0,0,.18)"></div>
-                  <div style="position:absolute;top:52px;left:58px;width:16px;height:16px;border-radius:50%;background:#5fdcff;box-shadow:0 0 18px #5fdcff"></div>
-                  <div style="position:absolute;top:52px;right:58px;width:16px;height:16px;border-radius:50%;background:#8e82ff;box-shadow:0 0 18px #8e82ff"></div>
-                  <div style="position:absolute;left:47px;right:47px;bottom:29px;height:31px;border-radius:14px 14px 32px 32px;background:linear-gradient(180deg,#8e82ff,#5447e6)"></div>
-                  <div style="position:absolute;left:83px;top:8px;width:8px;height:22px;border-radius:8px;background:#9da0b4"></div>
-                  <div style="position:absolute;left:79px;top:2px;width:16px;height:16px;border-radius:50%;background:#44d8ff;box-shadow:0 0 17px #44d8ff"></div>
-                </div>
-              </div>
-            </div>
-            <div class="chat">
-              <div class="chat-row"><div class="chat-avatar">U</div><div class="bubble">¿Cómo configuro el bot?</div></div>
-              <div class="chat-row"><div class="chat-avatar">✦</div><div class="bubble ai"><strong>AI Support</strong><br>Usa /panel y completa la configuración del servidor.</div></div>
-              <div class="chat-row me"><div class="bubble me">Necesito hablar con un humano.</div><div class="chat-avatar">U</div></div>
-            </div>
-          </div>
-        </div>
+    <section class="hero hero-reference"><div class="hero-grid">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="eyebrow-dot"></span>Discord support · powered by AI</div>
+        <h1>Automatiza el soporte de tu servidor con <span class="gradient-text">Inteligencia Artificial</span>.</h1>
+        <p>Responde preguntas, gestiona tickets y ahorra tiempo. Todo en uno, rápido y fácil de configurar.</p>
+        <div class="hero-actions"><a class="btn" href="/auth/discord">🚀 Invitar al bot</a><a class="btn alt" href="#pricing">Ver precios</a></div>
+        <div class="hero-trust-grid"><span class="mock-badge"><span class="dot"></span>Tickets automáticos</span><span class="mock-badge"><span class="dot"></span>Powered by Gemini AI</span><span class="mock-badge"><span class="dot"></span>Multilingüe</span><span class="mock-badge"><span class="dot"></span>Escalado a staff</span><span class="mock-badge"><span class="dot"></span>Fácil de configurar</span></div>
       </div>
-    </section>
-
-    <section class="section-block"><div class="stats-strip">
-      <div class="stat-block"><strong>+2.000</strong><span>Objetivo de servidores</span></div>
-      <div class="stat-block"><strong>24/7</strong><span>Asistencia automática</span></div>
-      <div class="stat-block"><strong>🌍</strong><span>Multilingüe</span></div>
-      <div class="stat-block"><strong>⚡</strong><span>Escalado a staff</span></div>
+      <div class="hero-art"><div class="art-glow"></div>
+        <div class="robot-wrap"><div class="robot-halo"></div><div class="robot-antenna"></div><div class="robot-head"><span class="robot-eye left"></span><span class="robot-eye right"></span><span class="robot-mouth"></span></div><div class="robot-body"><span class="robot-panel"></span></div><span class="robot-arm left"></span><span class="robot-arm right"></span></div>
+        <div class="art-badges"><span class="mock-badge b1">✦ IA con Gemini</span><span class="mock-badge b2">🌍 Multilenguaje</span><span class="mock-badge b3">🛎️ Escalado a staff</span><span class="mock-badge b4">⚙️ Fácil de configurar</span></div>
+      </div>
     </div></section>
-
-    <section class="section-block" id="features"><div class="section-head"><div><span class="pill">Funciones</span><h2>Todo en un mismo panel.</h2><p>Una experiencia simple para administradores y miembros.</p></div></div>
-      <div class="grid">
-        <article class="card feature-card"><div class="feature-icon">🎫</div><h3>Tickets automáticos</h3><p>Canales privados con acciones de cierre y atención humana.</p></article>
-        <article class="card feature-card"><div class="feature-icon">✦</div><h3>IA con Gemini</h3><p>Respuestas contextualizadas por servidor y por ticket.</p></article>
-        <article class="card feature-card"><div class="feature-icon">🌍</div><h3>Multilingüe</h3><p>Detecta y mantiene el idioma del usuario.</p></article>
-        <article class="card feature-card"><div class="feature-icon">📚</div><h3>Knowledge Base</h3><p>Reglas, FAQ, procedimientos y documentación propia.</p></article>
-        <article class="card feature-card"><div class="feature-icon">🛎️</div><h3>Escalado a staff</h3><p>Entrega el contexto al equipo humano cuando hace falta.</p></article>
-        <article class="card feature-card"><div class="feature-icon">📊</div><h3>Dashboard</h3><p>Uso, tickets, plan y configuración por servidor.</p></article>
-      </div>
+    <section class="section-block"><div class="ref-stats"><div class="ref-stat"><strong>+2.000</strong><span>Servidores</span></div><div class="ref-stat"><strong>24/7</strong><span>Asistencia automática</span></div><div class="ref-stat"><strong>🌍</strong><span>Multilingüe</span></div><div class="ref-stat"><strong>⚡</strong><span>Escalado a staff</span></div></div></section>
+    <section class="section-block" id="features"><div class="section-head"><div><span class="pill">Funciones</span><h2>Todo en un mismo panel.</h2><p>Soporte automatizado con control para tu equipo.</p></div></div>
+      <div class="grid"><article class="card feature-card"><div class="feature-icon">🎫</div><h3>Tickets automáticos</h3><p>Canales privados y gestión organizada de cada conversación.</p></article><article class="card feature-card"><div class="feature-icon">✦</div><h3>IA con Gemini</h3><p>Respuestas contextualizadas usando historial y Knowledge Base.</p></article><article class="card feature-card"><div class="feature-icon">🌍</div><h3>Multilingüe</h3><p>Detecta el idioma y mantiene la conversación.</p></article><article class="card feature-card"><div class="feature-icon">🛎️</div><h3>Escalado a staff</h3><p>Entrega el contexto al equipo humano cuando sea necesario.</p></article><article class="card feature-card"><div class="feature-icon">📚</div><h3>Knowledge Base</h3><p>Reglas, FAQ y procedimientos específicos de tu servidor.</p></article><article class="card feature-card"><div class="feature-icon">📊</div><h3>Dashboard</h3><p>Métricas, planes y configuración desde un solo lugar.</p></article></div>
     </section>
-
-    <section class="section-block" id="pricing"><div class="section-head"><div><span class="pill">Precios</span><h2>Planes simples.</h2><p>Todos los límites actuales se aplican por servidor.</p></div></div>
-      <div class="grid">${plans}</div>
+    <section class="section-block"><div class="section-head"><div><span class="pill">Discord</span><h2>Ejemplo de ticket.</h2><p>Así recibe ayuda un miembro dentro de tu servidor.</p></div></div>
+      <div class="ticket-demo"><aside class="ticket-demo-side"><div class="server-name">◉ Tu Servidor</div><div class="channel"># general</div><div class="channel"># soporte</div><div class="channel active"># ticket-1234</div><div class="channel" style="margin-top:18px">🔊 General</div></aside>
+      <div class="ticket-demo-main"><div class="ticket-demo-header"><span># ticket-1234</span><span>⋮</span></div><div class="ticket-demo-messages">
+        <div class="discord-msg"><div class="discord-avatar">AI</div><div><div class="discord-bubble bot"><b>AI Support</b> <span style="color:#8e82ff">APP</span><br>¡Hola! 👋 Soy el asistente de soporte. ¿En qué puedo ayudarte?<div class="discord-actions"><span class="discord-chip">👍 Hablar con un humano</span><span class="discord-chip close">✖ Cerrar ticket</span></div></div></div></div>
+        <div class="discord-msg"><div class="discord-avatar">U</div><div><div class="discord-bubble"><b>Usuario</b><br>¿Cómo puedo configurar el bot?</div></div></div>
+        <div class="discord-msg"><div class="discord-avatar">AI</div><div><div class="discord-bubble bot"><b>AI Support</b><br>Usa <b>/panel</b> o abre el dashboard web para configurar tickets, staff y Knowledge Base.</div></div></div>
+      </div></div></div>
     </section>
-
-    <section class="section-block"><div class="card" style="padding:28px"><div class="section-head" style="margin:0"><div><span class="pill">Ready</span><h2>Empieza en minutos.</h2><p>Conecta Discord, configura tu Knowledge Base y abre el primer ticket.</p></div><a class="btn" href="/auth/discord">Entrar con Discord</a></div></div></section>
+    <section class="section-block" id="pricing"><div class="section-head"><div><span class="pill">Precios</span><h2>Planes simples, para cualquier comunidad.</h2><p>Elige el plan que mejor se adapte a tu servidor.</p></div></div><div class="grid pricing-ref">${plans}</div></section>
+    <section class="section-block" id="docs"><div class="section-head"><div><span class="pill">Cómo funciona</span><h2>Del servidor vacío al soporte activo.</h2><p>Conecta, configura y automatiza.</p></div></div><div class="grid"><article class="card step-card"><div class="step-number">01</div><h3>Conecta</h3><p>Inicia sesión con Discord y añade AI Support.</p></article><article class="card step-card"><div class="step-number">02</div><h3>Configura</h3><p>Elige categoría, staff, mensajes y Knowledge Base.</p></article><article class="card step-card"><div class="step-number">03</div><h3>Automatiza</h3><p>La IA responde y escala los casos que requieren una persona.</p></article></div></section>
+    <section class="section-block" id="faq"><div class="section-head"><div><span class="pill">FAQ</span><h2>Preguntas frecuentes.</h2></div></div><div class="grid"><article class="card"><h3>¿La IA usa mis reglas?</h3><p>Sí. La Knowledge Base del servidor forma parte del contexto de las respuestas.</p></article><article class="card"><h3>¿Puedo hablar con un humano?</h3><p>Sí. El ticket puede escalarse al fundador o al staff configurado.</p></article><article class="card"><h3>¿Los planes son por servidor?</h3><p>Sí. Cada servidor tiene su propia configuración, uso y plan.</p></article></div></section>
+    <section class="section-block"><div class="card" style="padding:28px"><div class="section-head" style="margin:0"><div><span class="pill">Ready</span><h2>Empieza en minutos.</h2><p>Conecta Discord y prueba tu primer ticket.</p></div><a class="btn" href="/auth/discord">Entrar con Discord</a></div></div></section>
   `));
 });
-
 
 app.get("/onboarding", async (req, res) => {
   const session = await currentSession(req);
@@ -1013,151 +980,71 @@ app.post("/api/servers/:guildId/activation-code", rateLimit("activation-redeem",
 app.get("/dashboard", async (req, res) => {
   const session = await currentSession(req);
   if (!session) return res.redirect("/");
-
   const requestedGuildId = cleanText(req.query.guild, 100).trim();
-  let connectedGuild = requestedGuildId
-    ? session.guilds.find(g => g.id === requestedGuildId) || null
-    : session.guilds.find(g => client.guilds.cache.has(g.id)) || session.guilds[0] || null;
+  const connectedGuild = requestedGuildId ? session.guilds.find(g=>g.id===requestedGuildId) || null : session.guilds.find(g=>client.guilds.cache.has(g.id)) || session.guilds[0] || null;
+  if (connectedGuild) { const live = client.guilds.cache.get(connectedGuild.id); if (live && !(await userCanManageGuild(live, session.user.id))) return res.status(403).send("No autorizado."); }
 
-  if (connectedGuild) {
-    const liveGuild = client.guilds.cache.get(connectedGuild.id);
-    if (liveGuild && !(await userCanManageGuild(liveGuild, session.user.id))) {
-      return res.status(403).send("No autorizado.");
-    }
+  let stats={totalTickets:0,openTickets:0,closedTickets:0,escalatedTickets:0,totalMessages:0};
+  let usage={ticketsCreated:0,aiResponses:0};
+  let plan={plan:"free",status:"active",stripeCustomerId:null};
+  let definition=getPlanDefinition("free");
+  let activity=[];
+  let ticketTypes=[];
+  if(connectedGuild){
+    try{
+      [stats,usage,plan,activity,ticketTypes]=await Promise.all([getGuildDashboardStats(connectedGuild.id),getGuildUsage(connectedGuild.id),getGuildPlan(connectedGuild.id),getGuildTicketActivity(connectedGuild.id,30),getGuildTicketTypeStats(connectedGuild.id)]);
+      definition=getPlanDefinition(plan.status==="active"?normalizePlan(plan.plan):"free");
+    }catch(error){console.warn("[DASHBOARD] No se pudieron cargar métricas:",error.message);}
   }
 
-  let stats = { totalTickets:0, openTickets:0, closedTickets:0, escalatedTickets:0, totalMessages:0 };
-  let usage = { ticketsCreated:0, aiResponses:0 };
-  let plan = { plan:"free", status:"active", stripeCustomerId:null };
-  let definition = getPlanDefinition("free");
-  let activity = [];
-
-  if (connectedGuild) {
-    try {
-      [stats, usage, plan, activity] = await Promise.all([
-        getGuildDashboardStats(connectedGuild.id),
-        getGuildUsage(connectedGuild.id),
-        getGuildPlan(connectedGuild.id),
-        getGuildTicketActivity(connectedGuild.id, 30)
-      ]);
-      definition = getPlanDefinition(plan.status === "active" ? normalizePlan(plan.plan) : "free");
-    } catch (error) {
-      console.warn("[DASHBOARD] No se pudieron cargar métricas:", error.message);
-    }
-  }
-
-  const ticketPct = Math.min(100, Math.round((usage.ticketsCreated / Math.max(1, definition.ticketsPerMonth)) * 100));
-  const aiPct = Math.min(100, Math.round((usage.aiResponses / Math.max(1, definition.aiRepliesPerMonth)) * 100));
-  const totalTickets = Math.max(0, Number(stats.totalTickets || 0));
-  const openPct = totalTickets ? Math.round(Number(stats.openTickets || 0) / totalTickets * 100) : 0;
-  const closedPct = totalTickets ? Math.round(Number(stats.closedTickets || 0) / totalTickets * 100) : 0;
-  const escalatedPct = totalTickets ? Math.round(Number(stats.escalatedTickets || 0) / totalTickets * 100) : 0;
-  const donut = totalTickets
-    ? "background:conic-gradient(var(--brand) 0 " + openPct + "%,#44d8ff " + openPct + "% " + Math.min(100, openPct + closedPct) + "%,#ffbf5f " + Math.min(100, openPct + closedPct) + "% " + Math.min(100, openPct + closedPct + Math.max(0, escalatedPct / 3)) + "%,#4b4c5a 0 100%)"
-    : "background:#3d4050";
-
-  const maxActivity = Math.max(1, ...activity.map(x => Number(x.tickets || 0)));
-  const recentActivity = activity.slice(-14);
-  const activityBars = recentActivity.map(x => {
-    const value = Number(x.tickets || 0);
-    const height = Math.max(8, Math.round(value / maxActivity * 88));
-    const label = new Intl.DateTimeFormat("es-ES", { day:"2-digit", month:"short", timeZone:"Europe/Madrid" }).format(new Date(x.day));
-    return '<div class="activity-column" title="' + escapeHtml(label + " · " + value + " ticket(s)", 100) + '"><div class="activity-bar" style="height:' + height + '%"></div><span>' + escapeHtml(label.split(" ")[0], 10) + '</span></div>';
-  }).join("");
-
-  const serverOptions = session.guilds.map(g => '<option value="' + escapeHtml(g.id,80) + '"' + (connectedGuild && g.id === connectedGuild.id ? " selected" : "") + '>' + escapeHtml(g.name,100) + '</option>').join("");
-
-  const serverCards = session.guilds.map(g => {
-    const inBot = client.guilds.cache.has(g.id);
-    const icon = discordIconUrl(g);
-    return '<a class="card" href="/dashboard?guild=' + encodeURIComponent(g.id) + '">' +
-      '<div class="server-card"><div class="server-icon">' + (icon ? '<img src="' + escapeHtml(icon,300) + '" alt="">' : '◎') + '</div>' +
-      '<div class="server-meta"><div class="server-name">' + escapeHtml(g.name,100) + '</div><div class="status"><span class="status-dot ' + (inBot ? "online" : "offline") + '"></span>' + (inBot ? "Bot conectado" : "Pendiente de instalar") + '</div></div>' +
-      '<span class="btn btn-sm ' + (inBot ? "" : "alt") + '">' + (inBot ? "Abrir" : "Seleccionar") + '</span></div></a>';
-  }).join("");
-
-  const serverIcon = connectedGuild ? discordIconUrl(connectedGuild) : "";
-  const serverActions = connectedGuild
-    ? '<a class="btn btn-sm" href="/servers/' + encodeURIComponent(connectedGuild.id) + '">Abrir configuración</a>'
-    : '';
-
+  const ticketPct=Math.min(100,Math.round(usage.ticketsCreated/Math.max(1,definition.ticketsPerMonth)*100));
+  const aiPct=Math.min(100,Math.round(usage.aiResponses/Math.max(1,definition.aiRepliesPerMonth)*100));
+  const totalTickets=Math.max(0,Number(stats.totalTickets||0));
+  const openPct=totalTickets?Math.round(Number(stats.openTickets||0)/totalTickets*100):0;
+  const closedPct=totalTickets?Math.round(Number(stats.closedTickets||0)/totalTickets*100):0;
+  const escalatedPct=totalTickets?Math.round(Number(stats.escalatedTickets||0)/totalTickets*100):0;
+  const recentActivity=activity.slice(-14);
+  const maxActivity=Math.max(1,...recentActivity.map(x=>Number(x.tickets||0)));
+  const chartW=720,chartH=230,padX=28,padY=18;
+  const points=recentActivity.map((x,i)=>{const px=recentActivity.length<=1?chartW/2:padX+(i/(recentActivity.length-1))*(chartW-padX*2);const py=chartH-padY-(Number(x.tickets||0)/maxActivity)*(chartH-padY*2);return {x:px,y:py,value:Number(x.tickets||0)};});
+  const linePoints=points.map(p=>p.x.toFixed(1)+","+p.y.toFixed(1)).join(" ");
+  const areaPoints=points.length?(padX+","+chartH+" "+linePoints+" "+(chartW-padX)+","+chartH):"";
+  const pointCircles=points.map(p=>"<circle class=\"chart-dot\" cx=\""+p.x.toFixed(1)+"\" cy=\""+p.y.toFixed(1)+"\" r=\"4\"></circle>").join("");
+  const typeTotal=Math.max(1,ticketTypes.reduce((sum,x)=>sum+Number(x.total||0),0));
+  const typeSegments=ticketTypes.slice(0,4).map(x=>({type:x.type,total:Number(x.total||0),pct:Math.round(Number(x.total||0)/typeTotal*100)}));
+  let acc=0; const conicStops=typeSegments.map((x,i)=>{const s=acc;acc+=x.pct;return (i===0?"var(--brand)":i===1?"#44d8ff":i===2?"#ffbf5f":"#4b4c5a")+" "+s+"% "+acc+"%";}).join(",");
+  const donutStyle=typeSegments.length?"background:conic-gradient("+conicStops+")":"background:#3d4050";
+  const typeRows=typeSegments.length?typeSegments.map(x=>"<div class=\"type-legend-row\"><span class=\"type-key\"><span class=\"type-swatch\"></span>"+escapeHtml(x.type,30)+"</span><b>"+x.pct+"%</b></div>").join(""):"<div class=\"type-legend-row\"><span class=\"type-key\"><span class=\"type-swatch\"></span>Sin tickets</span><b>0%</b></div>";
+  const serverOptions=session.guilds.map(g=>"<option value=\""+escapeHtml(g.id,80)+"\""+(connectedGuild&&g.id===connectedGuild.id?" selected":"")+">"+escapeHtml(g.name,100)+"</option>").join("");
+  const serverCards=session.guilds.map(g=>{const inBot=client.guilds.cache.has(g.id);const icon=discordIconUrl(g);return "<a class=\"card\" href=\"/dashboard?guild="+encodeURIComponent(g.id)+"\"><div class=\"server-card\"><div class=\"server-icon\">"+(icon?"<img src=\""+escapeHtml(icon,300)+"\" alt=\"\">":"◎")+"</div><div class=\"server-meta\"><div class=\"server-name\">"+escapeHtml(g.name,100)+"</div><div class=\"status\"><span class=\"status-dot "+(inBot?"online":"offline")+"\"></span>"+(inBot?"Bot conectado":"Pendiente de instalar")+"</div></div><span class=\"btn btn-sm "+(inBot?"":"alt")+"\">"+(inBot?"Abrir":"Seleccionar")+"</span></div></a>";}).join("");
+  const serverIcon=connectedGuild?discordIconUrl(connectedGuild):"";
   res.send(htmlShell("Dashboard", `
     <div class="app-shell fade-in">
-      <aside class="app-sidebar">
-        <div class="server-switch">
-          <div class="mini-icon">${serverIcon ? '<img src="' + escapeHtml(serverIcon,300) + '" alt="">' : '◎'}</div>
-          <div class="name"><strong>${escapeHtml(connectedGuild?.name || "Mi servidor",100)}</strong><span>Servidor seleccionado</span></div>
-          <span>⌄</span>
-        </div>
+      <aside class="app-sidebar"><div class="server-switch"><div class="mini-icon">${serverIcon ? '<img src="' + escapeHtml(serverIcon,300) + '" alt="">' : "◎"}</div><div class="name"><strong>${escapeHtml(connectedGuild?.name||"Mi servidor",100)}</strong><span>Servidor seleccionado</span></div><span>⌄</span></div>
         <div class="side-group">Workspace</div>
-        <a class="side-link active" href="/dashboard"><span class="icon">⌂</span>Inicio</a>
-        <a class="side-link" href="#servers"><span class="icon">◈</span>Servidores</a>
-        <a class="side-link" href="${connectedGuild ? '/servers/' + encodeURIComponent(connectedGuild.id) + '#tickets' : '#servers'}"><span class="icon">▣</span>Tickets</a>
-        <a class="side-link" href="${connectedGuild ? '/servers/' + encodeURIComponent(connectedGuild.id) + '#ai' : '#servers'}"><span class="icon">✦</span>IA</a>
-        <a class="side-link" href="${connectedGuild ? '/servers/' + encodeURIComponent(connectedGuild.id) + '#knowledge' : '#servers'}"><span class="icon">▤</span>Knowledge Base</a>
-        <a class="side-link" href="${connectedGuild ? '/servers/' + encodeURIComponent(connectedGuild.id) + '#staff' : '#servers'}"><span class="icon">♙</span>Configuración</a>
-        <a class="side-link" href="${connectedGuild ? '/pricing?guild=' + encodeURIComponent(connectedGuild.id) : '/pricing'}"><span class="icon">◈</span>Facturación</a>
-        <a class="side-link" href="${connectedGuild ? '/servers/' + encodeURIComponent(connectedGuild.id) + '#activation' : '#servers'}"><span class="icon">⌁</span>Código de activación</a>
+        <a class="side-link active" href="/dashboard"><span class="icon">⌂</span>Inicio</a><a class="side-link" href="#servers"><span class="icon">◈</span>Servidores</a>
+        <a class="side-link" href="${connectedGuild ? "/servers/"+encodeURIComponent(connectedGuild.id)+"#tickets" : "#servers"}"><span class="icon">▣</span>Tickets</a><a class="side-link" href="${connectedGuild ? "/servers/"+encodeURIComponent(connectedGuild.id)+"#ai" : "#servers"}"><span class="icon">✦</span>IA</a>
+        <a class="side-link" href="${connectedGuild ? "/servers/"+encodeURIComponent(connectedGuild.id)+"#knowledge" : "#servers"}"><span class="icon">▤</span>Knowledge Base</a><a class="side-link" href="${connectedGuild ? "/servers/"+encodeURIComponent(connectedGuild.id)+"#staff" : "#servers"}"><span class="icon">♙</span>Configuración</a>
+        <a class="side-link" href="${connectedGuild ? "/pricing?guild="+encodeURIComponent(connectedGuild.id) : "/pricing"}"><span class="icon">◈</span>Facturación</a><a class="side-link" href="${connectedGuild ? "/servers/"+encodeURIComponent(connectedGuild.id)+"#activation" : "#servers"}"><span class="icon">⌁</span>Código de activación</a>
       </aside>
-
       <main class="app-main">
-        <div class="page-top">
-          <div><span class="pill">Dashboard principal</span><h1>Hola, ${escapeHtml(session.user.username,80)} 👋</h1><p>Gestiona tu bot y tu soporte desde aquí.</p></div>
-          <div class="dashboard-actions">${serverActions}<a class="btn alt btn-sm" href="/onboarding">Primeros pasos</a></div>
-        </div>
-
-        <div class="profile-banner">
-          <div>
-            <strong>${escapeHtml(connectedGuild?.name || "Selecciona un servidor",100)}</strong>
-            <div class="help">Métricas en tiempo real · cambia de servidor desde aquí</div>
+        <div class="page-top"><div><span class="pill">Dashboard principal</span><h1>Hola, ${escapeHtml(session.user.username,80)} 👋</h1><p>Gestiona tu bot y tu soporte desde aquí.</p></div><div class="dashboard-actions">${connectedGuild?'<a class="btn btn-sm" href="/servers/'+encodeURIComponent(connectedGuild.id)+'">Abrir configuración</a>':""}<a class="btn alt btn-sm" href="/pricing">Ver planes</a></div></div>
+        <div class="profile-banner"><div><strong>${escapeHtml(connectedGuild?.name||"Selecciona un servidor",100)}</strong><div class="help">Métricas actuales del servidor seleccionado</div></div><select onchange="if(this.value) location.href='/dashboard?guild='+encodeURIComponent(this.value)" style="min-width:210px"><option value="">Cambiar servidor</option>${serverOptions}</select></div>
+        <div class="metric-grid"><div class="metric-card"><div class="metric-top"><span>Tickets este mes</span><span class="metric-icon">▣</span></div><div class="metric-value">${usage.ticketsCreated} <span style="font-size:13px;color:var(--muted)">/ ${definition.ticketsPerMonth}</span></div><div class="progress" style="margin-top:10px"><span style="width:${ticketPct}%"></span></div><div class="metric-sub">${ticketPct}% del límite</div></div>
+          <div class="metric-card"><div class="metric-top"><span>Respuestas IA</span><span class="metric-icon">✦</span></div><div class="metric-value">${usage.aiResponses} <span style="font-size:13px;color:var(--muted)">/ ${definition.aiRepliesPerMonth}</span></div><div class="progress" style="margin-top:10px"><span style="width:${aiPct}%"></span></div><div class="metric-sub">${aiPct}% del límite</div></div>
+          <div class="metric-card"><div class="metric-top"><span>Plan actual</span><span class="metric-icon">♛</span></div><div class="metric-value" style="font-size:25px">${escapeHtml(definition.name,40)}</div><div class="metric-sub">${escapeHtml(definition.price+" · "+definition.billing,60)}</div><a class="btn btn-sm" style="margin-top:13px" href="${connectedGuild?"/pricing?guild="+encodeURIComponent(connectedGuild.id):"/pricing"}">Gestionar plan</a></div></div>
+        <section class="section-block" style="padding-bottom:0"><div class="two-col">
+          <div class="panel-card"><div class="section-head" style="margin-bottom:3px"><div><span class="pill">Actividad</span><h2>Actividad de tickets</h2><p>Tickets creados por día · últimos 30 días.</p></div><span class="pill">${totalTickets} total</span></div>
+            <div class="saas-chart"><svg viewBox="0 0 720 230" preserveAspectRatio="none"><defs><linearGradient id="areaGrad" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#7468ff" stop-opacity=".30"/><stop offset="100%" stop-color="#7468ff" stop-opacity="0"/></linearGradient></defs><line class="chart-grid" x1="28" y1="55" x2="692" y2="55"/><line class="chart-grid" x1="28" y1="112" x2="692" y2="112"/><line class="chart-grid" x1="28" y1="169" x2="692" y2="169"/><polygon class="chart-area" points="${areaPoints}"/><polyline class="chart-line" points="${linePoints}"/>${pointCircles}</svg></div>
+            <div class="activity-axis"><span>Inicio</span><span>Actual</span></div>
           </div>
-          <div>
-            <select onchange="if(this.value) location.href='/dashboard?guild='+encodeURIComponent(this.value)" style="min-width:190px">
-              <option value="">Cambiar servidor</option>
-              ${serverOptions}
-            </select>
-          </div>
-        </div>
-
-        <div class="metric-grid">
-          <div class="metric-card"><div class="metric-top"><span>Tickets este mes</span><span class="metric-icon">▣</span></div><div class="metric-value">${usage.ticketsCreated} <span style="font-size:13px;color:var(--muted)">/ ${definition.ticketsPerMonth}</span></div><div class="progress" style="margin-top:10px"><span style="width:${ticketPct}%"></span></div><div class="metric-sub">${ticketPct}% del límite actual</div></div>
-          <div class="metric-card"><div class="metric-top"><span>Respuestas IA</span><span class="metric-icon">✦</span></div><div class="metric-value">${usage.aiResponses} <span style="font-size:13px;color:var(--muted)">/ ${definition.aiRepliesPerMonth}</span></div><div class="progress" style="margin-top:10px"><span style="width:${aiPct}%"></span></div><div class="metric-sub">${aiPct}% del límite actual</div></div>
-          <div class="metric-card"><div class="metric-top"><span>Plan actual</span><span class="metric-icon">♛</span></div><div class="metric-value" style="font-size:25px">${escapeHtml(definition.name,40)}</div><div class="metric-sub">${escapeHtml(definition.price + " · " + definition.billing,60)}</div><a class="btn btn-sm" style="margin-top:13px" href="${connectedGuild ? '/pricing?guild=' + encodeURIComponent(connectedGuild.id) : '/pricing'}">Gestionar plan</a></div>
-        </div>
-
-        <section class="section-block" style="padding-bottom:0">
-          <div class="two-col">
-            <div class="panel-card">
-              <div class="section-head" style="margin-bottom:3px"><div><span class="pill">Últimos 14 días</span><h2>Actividad de tickets</h2><p>Tickets creados por día a partir de PostgreSQL.</p></div><span class="pill">${totalTickets} total</span></div>
-              <div class="activity-bars real-activity">
-                ${activityBars || '<div class="empty"><div class="feature-icon">▣</div><h3>Sin actividad todavía</h3><p>Cuando entren tickets aparecerán aquí.</p></div>'}
-              </div>
-              ${recentActivity.length ? '<div class="activity-axis"><span>' + escapeHtml(recentActivity[0].day,30) + '</span><span>' + escapeHtml(recentActivity[recentActivity.length-1].day,30) + '</span></div>' : ''}
-            </div>
-            <div class="panel-card">
-              <div class="section-head" style="margin-bottom:12px"><div><span class="pill">Distribución</span><h2>Tipos / estado</h2><p>Reparto actual del soporte.</p></div></div>
-              <div class="donut-wrap">
-                <div class="donut" style="${donut}"></div>
-                <div class="legend">
-                  <div class="legend-row"><span><span class="legend-dot"></span>Abiertos</span><b>${openPct}%</b></div>
-                  <div class="legend-row"><span><span class="legend-dot"></span>Cerrados</span><b>${closedPct}%</b></div>
-                  <div class="legend-row"><span><span class="legend-dot"></span>Escalados</span><b>${escalatedPct}%</b></div>
-                  <div class="legend-row"><span><span class="legend-dot"></span>Total</span><b>${totalTickets}</b></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="section-block" id="servers">
-          <div class="section-head"><div><span class="pill">Servidores</span><h2>Tus servidores.</h2><p>Selecciona dónde quieres trabajar.</p></div></div>
-          <div class="grid">${serverCards || '<div class="card empty" style="grid-column:1/-1"><div class="feature-icon">☁️</div><h3>No hay servidores gestionables</h3><p>Autoriza una cuenta de Discord con permisos suficientes.</p></div>'}</div>
-        </section>
+          <div class="panel-card"><div class="section-head" style="margin-bottom:12px"><div><span class="pill">Distribución</span><h2>Tipos de tickets</h2><p>Clasificación automática.</p></div></div><div class="type-card"><div class="type-donut" style="${donutStyle}"></div><div class="type-legend">${typeRows}</div></div></div>
+        </div></section>
+        <section class="section-block" id="servers"><div class="section-head"><div><span class="pill">Servidores</span><h2>Tus servidores.</h2><p>Selecciona dónde quieres trabajar.</p></div></div><div class="grid">${serverCards||'<div class="card empty" style="grid-column:1/-1"><div class="feature-icon">☁️</div><h3>No hay servidores</h3><p>Autoriza una cuenta con permisos suficientes.</p></div>'}</div></section>
       </main>
     </div>
   `, session.user));
 });
-
 
 app.get("/servers/:guildId", async (req, res) => {
   try {
