@@ -100,6 +100,31 @@ async function initDatabase() {
   `);
 
   await p.query(`
+    CREATE TABLE IF NOT EXISTS activation_codes (
+      code_hash TEXT PRIMARY KEY,
+      code_hint TEXT NOT NULL,
+      plan TEXT NOT NULL CHECK (plan IN ('pro', 'lifetime')),
+      status TEXT NOT NULL DEFAULT 'available' CHECK (status IN ('available', 'used', 'disabled')),
+      created_by_discord_user_id TEXT NOT NULL,
+      expires_at TIMESTAMPTZ,
+      redeemed_guild_id TEXT,
+      redeemed_by_discord_user_id TEXT,
+      redeemed_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await p.query(`
+    CREATE INDEX IF NOT EXISTS idx_activation_codes_status_created
+    ON activation_codes (status, created_at DESC)
+  `);
+
+  await p.query(`
+    CREATE INDEX IF NOT EXISTS idx_activation_codes_redeemed_guild
+    ON activation_codes (redeemed_guild_id)
+  `);
+
+  await p.query(`
     CREATE TABLE IF NOT EXISTS guild_configs (
       guild_id TEXT PRIMARY KEY,
       founder_id TEXT,
@@ -363,6 +388,284 @@ async function cleanupExpiredSessions() {
   await getPool().query("DELETE FROM oauth_states WHERE expires_at <= NOW()");
 }
 
+
+function normalizeActivationCode(code) {
+  return String(code || "")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, "");
+}
+
+function hashActivationCode(code) {
+  return require("crypto")
+    .createHash("sha256")
+    .update(normalizeActivationCode(code))
+    .digest("hex");
+}
+
+function activationCodeCharacters() {
+  return "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+}
+
+function randomActivationPart(length = 4) {
+  const chars = activationCodeCharacters();
+  let value = "";
+  for (let i = 0; i < length; i += 1) {
+    value += chars[require("crypto").randomInt(0, chars.length)];
+  }
+  return value;
+}
+
+function buildActivationCode(plan) {
+  const prefix = plan === "lifetime" ? "LIFE" : "PRO";
+  return prefix + "-" + randomActivationPart(4) + "-" + randomActivationPart(4);
+}
+
+async function createActivationCodes({ plan, quantity, expiresAt = null, createdByDiscordUserId }) {
+  if (!["pro", "lifetime"].includes(plan)) {
+    throw new Error("Plan de activación no válido.");
+  }
+
+  const safeQuantity = Math.min(Math.max(Number(quantity) || 0, 1), 100);
+  if (safeQuantity < 1) {
+    throw new Error("La cantidad de códigos no es válida.");
+  }
+
+  if (!createdByDiscordUserId) {
+    throw new Error("Falta el usuario creador del lote.");
+  }
+
+  let expiration = null;
+  if (expiresAt) {
+    const parsed = new Date(expiresAt);
+    if (Number.isNaN(parsed.getTime())) {
+      throw new Error("La fecha de expiración no es válida.");
+    }
+    if (parsed.getTime() <= Date.now()) {
+      throw new Error("La fecha de expiración debe ser futura.");
+    }
+    expiration = parsed.toISOString();
+  }
+
+  const p = getPool();
+  const client = await p.connect();
+  const createdCodes = [];
+
+  try {
+    await client.query("BEGIN");
+
+    const usedHashes = new Set();
+
+    while (createdCodes.length < safeQuantity) {
+      const rawCode = buildActivationCode(plan);
+      const codeHash = hashActivationCode(rawCode);
+
+      if (usedHashes.has(codeHash)) continue;
+      usedHashes.add(codeHash);
+
+      try {
+        await client.query(
+          `INSERT INTO activation_codes
+            (code_hash, code_hint, plan, status, created_by_discord_user_id, expires_at)
+           VALUES ($1, $2, $3, 'available', $4, $5)`,
+          [
+            codeHash,
+            rawCode.split("-").slice(0, 2).join("-"),
+            plan,
+            createdByDiscordUserId,
+            expiration
+          ]
+        );
+        createdCodes.push(rawCode);
+      } catch (error) {
+        if (error.code === "23505") continue;
+        throw error;
+      }
+    }
+
+    await client.query("COMMIT");
+    return createdCodes;
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function redeemActivationCode({ code, guildId, discordUserId }) {
+  const normalized = normalizeActivationCode(code);
+  if (!normalized || !guildId || !discordUserId) {
+    return { ok: false, reason: "invalid" };
+  }
+
+  const codeHash = hashActivationCode(normalized);
+  const p = getPool();
+  const client = await p.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const codeResult = await client.query(
+      `SELECT
+         code_hash,
+         plan,
+         status,
+         expires_at
+       FROM activation_codes
+       WHERE code_hash = $1
+       FOR UPDATE`,
+      [codeHash]
+    );
+
+    if (codeResult.rowCount === 0) {
+      await client.query("ROLLBACK");
+      return { ok: false, reason: "invalid" };
+    }
+
+    const activation = codeResult.rows[0];
+
+    if (activation.status !== "available") {
+      await client.query("ROLLBACK");
+      return {
+        ok: false,
+        reason: activation.status === "used" ? "used" : "disabled"
+      };
+    }
+
+    if (activation.expires_at && new Date(activation.expires_at).getTime() <= Date.now()) {
+      await client.query(
+        `UPDATE activation_codes
+         SET status = 'disabled'
+         WHERE code_hash = $1`,
+        [codeHash]
+      );
+      await client.query("COMMIT");
+      return { ok: false, reason: "expired" };
+    }
+
+    const subscriptionResult = await client.query(
+      `SELECT plan, status
+       FROM guild_subscriptions
+       WHERE guild_id = $1
+       FOR UPDATE`,
+      [guildId]
+    );
+
+    if (subscriptionResult.rowCount > 0) {
+      const current = subscriptionResult.rows[0];
+      const currentPlan = String(current.plan || "free").toLowerCase();
+      const currentStatus = String(current.status || "active").toLowerCase();
+
+      if (currentStatus === "active" && currentPlan !== "free") {
+        await client.query("ROLLBACK");
+        return { ok: false, reason: "plan_active" };
+      }
+    }
+
+    await client.query(
+      `INSERT INTO guild_subscriptions
+        (guild_id, plan, status, stripe_customer_id, stripe_subscription_id, stripe_price_id, updated_at)
+       VALUES ($1, $2, 'active', NULL, NULL, NULL, NOW())
+       ON CONFLICT (guild_id)
+       DO UPDATE SET
+         plan = EXCLUDED.plan,
+         status = 'active',
+         stripe_customer_id = NULL,
+         stripe_subscription_id = NULL,
+         stripe_price_id = NULL,
+         updated_at = NOW()`,
+      [guildId, activation.plan]
+    );
+
+    const redeemed = await client.query(
+      `UPDATE activation_codes
+       SET
+         status = 'used',
+         redeemed_guild_id = $2,
+         redeemed_by_discord_user_id = $3,
+         redeemed_at = NOW()
+       WHERE code_hash = $1
+         AND status = 'available'
+       RETURNING plan`,
+      [codeHash, guildId, discordUserId]
+    );
+
+    if (redeemed.rowCount !== 1) {
+      await client.query("ROLLBACK");
+      return { ok: false, reason: "used" };
+    }
+
+    await client.query("COMMIT");
+    return { ok: true, plan: redeemed.rows[0].plan };
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => {});
+    console.error("Activation code redeem error:", error);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function disableActivationCode(code) {
+  const normalized = normalizeActivationCode(code);
+  if (!normalized) return false;
+
+  const result = await getPool().query(
+    `UPDATE activation_codes
+     SET status = 'disabled'
+     WHERE code_hash = $1
+       AND status = 'available'
+     RETURNING code_hint`,
+    [hashActivationCode(normalized)]
+  );
+
+  return result.rowCount > 0;
+}
+
+async function listActivationCodes(limit = 100) {
+  const safeLimit = Math.min(Math.max(Number(limit) || 100, 1), 500);
+  const result = await getPool().query(
+    `SELECT
+       code_hint,
+       plan,
+       CASE
+         WHEN status = 'available' AND expires_at IS NOT NULL AND expires_at <= NOW() THEN 'expired'
+         ELSE status
+       END AS status,
+       expires_at,
+       redeemed_guild_id,
+       redeemed_by_discord_user_id,
+       redeemed_at,
+       created_at
+     FROM activation_codes
+     ORDER BY created_at DESC
+     LIMIT $1`,
+    [safeLimit]
+  );
+
+  return result.rows;
+}
+
+async function getActivationCodeStats() {
+  const result = await getPool().query(
+    `SELECT
+       COUNT(*)::int AS total,
+       COUNT(*) FILTER (WHERE status = 'available' AND (expires_at IS NULL OR expires_at > NOW()))::int AS available,
+       COUNT(*) FILTER (WHERE status = 'used')::int AS used,
+       COUNT(*) FILTER (WHERE status = 'disabled' OR (status = 'available' AND expires_at IS NOT NULL AND expires_at <= NOW()))::int AS disabled_or_expired
+     FROM activation_codes`
+  );
+
+  const row = result.rows[0] || {};
+  return {
+    total: Number(row.total || 0),
+    available: Number(row.available || 0),
+    used: Number(row.used || 0),
+    disabledOrExpired: Number(row.disabled_or_expired || 0)
+  };
+}
+
 async function getGuildPlan(guildId) {
   const result = await getPool().query(
     "SELECT plan, status, stripe_customer_id, stripe_subscription_id, stripe_price_id FROM guild_subscriptions WHERE guild_id = $1",
@@ -577,5 +880,11 @@ module.exports = {
   saveGuildSubscription,
   getGuildUsage,
   consumeGuildQuota,
-  releaseGuildQuota
+  releaseGuildQuota,
+  normalizeActivationCode,
+  createActivationCodes,
+  redeemActivationCode,
+  disableActivationCode,
+  listActivationCodes,
+  getActivationCodeStats
 };
