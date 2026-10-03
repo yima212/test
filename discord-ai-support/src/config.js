@@ -21,5 +21,8 @@ module.exports = {
   ticketCategoryId: process.env.TICKET_CATEGORY_ID || null,
   staffRoleId: process.env.STAFF_ROLE_ID || null,
   geminiKey: (process.env.GEMINI_API_KEY || "").trim() || null,
-  aiModel: process.env.AI_MODEL || "gemini-3.5-flash-lite"
+  aiModel: process.env.AI_MODEL || "gemini-3.5-flash-lite",
+  port: Number(process.env.PORT || 3000),
+  discordClientSecret: (process.env.DISCORD_CLIENT_SECRET || "").trim(),
+  dashboardUrl: (process.env.DASHBOARD_URL || "https://discord-ai-support-production-7db6.up.railway.app").replace(/\/$/, "")
 };
