@@ -361,8 +361,11 @@ app.get("/servers/:guildId", async (req, res) => {
       .map(ch => '<option value="'+escapeHtml(ch.id,80)+'" '+(cfg.ticketCategoryId === ch.id ? "selected" : "")+'>'+escapeHtml(ch.name,100)+'</option>')
       .join("");
 
-    const roles = discordGuild.roles.cache
-      .filter(role => role.id !== discordGuild.id && !role.managed)
+    const roles = Array.from(
+      discordGuild.roles.cache
+        .filter(role => role.id !== discordGuild.id && !role.managed)
+        .values()
+    )
       .sort((a,b) => b.position - a.position)
       .slice(0, 100)
       .map(role => '<option value="'+escapeHtml(role.id,80)+'" '+(cfg.staffRoleId === role.id ? "selected" : "")+'>'+escapeHtml(role.name,100)+'</option>')
