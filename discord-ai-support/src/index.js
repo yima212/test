@@ -73,6 +73,175 @@ client.once("ready", async () => {
   console.log("✅ Sistema de tickets listo.");
 });
 
+const STAFF_ROLE_KEYWORDS = [
+  "staff", "moderador", "moderadora", "moderator", "mod",
+  "admin", "administrador", "support", "soporte"
+];
+
+function hasStaffRole(member) {
+  if (!member) return false;
+  if (member.permissions.has(PermissionFlagsBits.ManageChannels)) return true;
+  return member.roles.cache.some(role => {
+    const name = role.name.toLowerCase();
+    return STAFF_ROLE_KEYWORDS.some(keyword => name.includes(keyword));
+  });
+}
+
+function getCurrentSpainTime() {
+  return new Intl.DateTimeFormat("es-ES", {
+    timeZone: "Europe/Madrid",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+  }).format(new Date());
+}
+
+function textLooksLikeTimeQuestion(text) {
+  return /(?:^|\s)(?:que|qué)\s+hora\s+(?:es|tenemos)\b/i.test(text) ||
+    /\bhora\s+(?:actual|ahora)\b/i.test(text) ||
+    /\bque hora\b/i.test(text) ||
+    /\bqué hora\b/i.test(text);
+}
+
+function textLooksLikeFounderQuestion(text) {
+  return /\b(?:quien|quién)\s+(?:es|seria|sería)\s+(?:el\s+)?fundador\b/i.test(text) ||
+    /\b(?:quien|quién)\s+es\s+(?:el\s+)?owner\b/i.test(text);
+}
+
+function textLooksLikeHumanContactRequest(text) {
+  return /\b(?:quiero|puedo|puedes|me\s+puedes|necesito)\b.*\b(?:hablar|contactar|llamar)\b/i.test(text) ||
+    /\b(?:hablar|contactar|llamar)\b.*\b(?:staff|moderador|moderadora|moderator|admin|soporte)\b/i.test(text) ||
+    /\b(?:conecta(?:me)?|ponerme\s+en\s+contacto)\b.*\b(?:staff|moderador|moderadora|moderator|admin|soporte)\b/i.test(text);
+}
+
+async function findStaffMember(guild) {
+  if (config.staffRoleId) {
+    const role = guild.roles.cache.get(config.staffRoleId);
+    const member = role?.members.find(m => !m.user.bot && hasStaffRole(m));
+    if (member) return member;
+  }
+
+  return guild.members.cache.find(
+    member => !member.user.bot && hasStaffRole(member)
+  ) || null;
+}
+
+async function notifyStaffMember({ member, channel, session, requestedBy }) {
+  const dmMessage =
+    "🛎️ **Solicitud de soporte humano**\n\n" +
+    "👤 **Usuario:** <@" + session.ownerId + ">\n" +
+    "🎫 **Ticket:** " + channel.toString() + "\n" +
+    "📌 **Solicitud:** " + requestedBy + "\n\n" +
+    "🔗 " + channel.url;
+
+  let dmSent = false;
+  try {
+    await member.send(dmMessage);
+    dmSent = true;
+  } catch (error) {
+    console.error("No se pudo enviar DM a " + member.user.tag + ":", error.message);
+  }
+
+  await channel.send({
+    content: member.toString() + " 👤 Te están solicitando en este ticket.",
+    allowedMentions: { users: [member.id] }
+  });
+
+  return dmSent;
+}
+
+async function handleDirectRequest(message, session) {
+  const text = message.content.trim();
+
+  if (textLooksLikeTimeQuestion(text)) {
+    await message.channel.send(
+      "🕐 En España (hora peninsular) son las **" + getCurrentSpainTime() + "**."
+    );
+    return true;
+  }
+
+  if (textLooksLikeFounderQuestion(text)) {
+    if (!config.founderId) {
+      await message.channel.send("⚠️ No tengo configurado quién es el fundador.");
+      return true;
+    }
+
+    await message.channel.send(
+      "👑 El fundador es <@" + config.founderId + ">."
+    );
+    return true;
+  }
+
+  const mentionedMember = message.mentions.members.first();
+  const wantsHuman = textLooksLikeHumanContactRequest(text);
+
+  if (mentionedMember && wantsHuman) {
+    if (!hasStaffRole(mentionedMember)) {
+      await message.channel.send(
+        "⚠️ " + mentionedMember.toString() + " no está identificado como miembro del staff/moderación."
+      );
+      return true;
+    }
+
+    const dmSent = await notifyStaffMember({
+      member: mentionedMember,
+      channel: message.channel,
+      session,
+      requestedBy: message.content
+    });
+
+    await message.channel.send(
+      dmSent
+        ? "✅ Vale. He contactado con " + mentionedMember.toString() + "."
+        : "✅ He avisado a " + mentionedMember.toString() + " en el ticket, pero no he podido enviarle un DM."
+    );
+    session.escalated = true;
+    return true;
+  }
+
+  if (wantsHuman) {
+    const staffMember = await findStaffMember(message.guild);
+
+    if (!staffMember) {
+      if (config.founderId) {
+        const founder = await client.users.fetch(config.founderId);
+        await founder.send(
+          "🛎️ **Solicitud de staff**\n\n" +
+          "👤 **Usuario:** <@" + session.ownerId + ">\n" +
+          "🎫 **Ticket:** " + message.channel.toString() + "\n" +
+          "🔗 " + message.channel.url
+        );
+
+        await message.channel.send(
+          "👤 No he encontrado un miembro del staff disponible. He avisado al fundador."
+        );
+        session.escalated = true;
+        return true;
+      }
+
+      await message.channel.send("⚠️ No he encontrado ningún miembro del staff configurado.");
+      return true;
+    }
+
+    const dmSent = await notifyStaffMember({
+      member: staffMember,
+      channel: message.channel,
+      session,
+      requestedBy: message.content
+    });
+
+    await message.channel.send(
+      dmSent
+        ? "✅ Vale. He contactado con " + staffMember.toString() + "."
+        : "✅ He avisado a " + staffMember.toString() + " en el ticket, pero no he podido enviarle un DM."
+    );
+    session.escalated = true;
+    return true;
+  }
+
+  return false;
+}
 client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand() && !interaction.isButton()) return;
 
@@ -274,6 +443,9 @@ client.on("messageCreate", async message => {
   if (session.escalated) return;
 
   try {
+    const handledDirectly = await handleDirectRequest(message, session);
+    if (handledDirectly) return;
+
     await message.channel.sendTyping();
 
     const result = await answerWithAI({
