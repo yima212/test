@@ -620,7 +620,7 @@ app.get("/dashboard", async (req, res) => {
 
 app.get("/servers/:guildId", async (req, res) => {
   try {
-    const session = currentSession(req);
+    const session = await currentSession(req);
     if (!session) return res.redirect("/");
 
     const guild = session.guilds.find(g => g.id === req.params.guildId);
