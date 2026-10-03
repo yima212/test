@@ -388,7 +388,7 @@ app.get("/dashboard", async (req, res) => {
           <div class="actions">
             ${botIn
               ? '<a class="btn" href="/servers/'+encodeURIComponent(guild.id)+'">Abrir panel</a>'
-              : '<a class="btn" target="_blank" rel="noopener" href="https://discord.com/oauth2/authorize?client_id='+encodeURIComponent(config.clientId)+'&scope=bot%20applications.commands&permissions='+BOT_PERMISSIONS+'&guild_id='+encodeURIComponent(guild.id)+'">Añadir bot</a>'}
+              : '<a class="btn" href="/servers/'+encodeURIComponent(guild.id)+'/install">Añadir bot</a>'}
           </div>
         </div>
       </div>`;
