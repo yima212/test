@@ -21,7 +21,9 @@ const {
   redeemActivationCode,
   disableActivationCode,
   listActivationCodes,
-  getActivationCodeStats
+  getActivationCodeStats,
+  recordAuditLog,
+  getRecentAuditLogs
 } = require("./db");
 
 const {
@@ -32,7 +34,66 @@ const {
 } = require("./plans");
 
 const app = express();
+app.set("trust proxy", 1);
 const stripe = config.stripeSecretKey ? new Stripe(config.stripeSecretKey) : null;
+
+const rateBuckets = new Map();
+const RATE_WINDOW = 60 * 1000;
+
+function clientIp(req) {
+  return String(req.ip || req.socket?.remoteAddress || "unknown").slice(0, 120);
+}
+
+function rateLimit(prefix, max, windowMs = RATE_WINDOW) {
+  return (req, res, next) => {
+    const now = Date.now();
+    const key = prefix + ":" + clientIp(req);
+    const current = rateBuckets.get(key);
+    if (!current || now - current.startedAt >= windowMs) {
+      rateBuckets.set(key, { startedAt: now, count: 1 });
+      return next();
+    }
+
+    current.count += 1;
+    if (current.count <= max) return next();
+
+    const retryAfter = Math.max(1, Math.ceil((windowMs - (now - current.startedAt)) / 1000));
+    res.setHeader("Retry-After", retryAfter);
+    return res.status(429).send("Demasiadas solicitudes. Espera unos segundos e inténtalo de nuevo.");
+  };
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, bucket] of rateBuckets) {
+    if (now - bucket.startedAt > 15 * 60 * 1000) rateBuckets.delete(key);
+  }
+}, 5 * 60 * 1000).unref();
+
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  res.setHeader("Cache-Control", "no-store");
+
+  if (req.method === "POST" && req.path !== "/api/stripe/webhook") {
+    const origin = String(req.headers.origin || "").trim();
+    const referer = String(req.headers.referer || "").trim();
+    const expectedOrigin = config.dashboardUrl;
+
+    const validOrigin = origin
+      ? origin === expectedOrigin
+      : (referer && referer.startsWith(expectedOrigin + "/"));
+
+    if (!validOrigin) {
+      return res.status(403).send("Origen de solicitud no permitido.");
+    }
+  }
+
+  next();
+});
+
 app.use(express.json({
   limit: "32kb",
   verify: (req, _res, buf) => {
@@ -94,8 +155,36 @@ function parseCookies(header = "") {
 }
 
 async function currentSession(req) {
-  const token = parseCookies(req.headers.cookie).dashboard_session;
+  const cookies = parseCookies(req.headers.cookie);
+  const token = cookies["__Host-dashboard_session"] || cookies.dashboard_session;
   return token ? getDashboardSession(token) : null;
+}
+
+async function userCanManageGuild(discordGuild, userId) {
+  if (!discordGuild || !userId) return false;
+  if (discordGuild.ownerId === userId) return true;
+
+  try {
+    const member = await discordGuild.members.fetch(userId);
+    return Boolean(
+      member.permissions.has("Administrator") ||
+      member.permissions.has("ManageGuild")
+    );
+  } catch (error) {
+    console.warn("[SECURITY] No se pudo verificar permisos en vivo:", error.message);
+    return false;
+  }
+}
+
+async function requireManagedGuild(req, session) {
+  const guild = session?.guilds?.find(g => g.id === req.params.guildId);
+  if (!guild) return null;
+
+  const discordGuild = client.guilds.cache.get(guild.id);
+  if (!discordGuild) return null;
+
+  const allowed = await userCanManageGuild(discordGuild, session.user.id);
+  return allowed ? { guild, discordGuild } : null;
 }
 
 function isManager(guild) {
@@ -240,7 +329,7 @@ app.get("/health", (_req, res) => {
   res.json({ ok: true, service: "discord-ai-support" });
 });
 
-app.get("/auth/discord", async (_req, res) => {
+app.get("/auth/discord", rateLimit("oauth-start", 12, 10 * 60 * 1000), async (_req, res) => {
   if (!config.discordClientSecret) {
     return res.status(503).send(htmlShell("Configuración pendiente",
       '<div class="card"><h2>Falta Discord OAuth</h2><p class="muted">Añade DISCORD_CLIENT_SECRET en Railway y vuelve a intentarlo.</p></div>'
@@ -264,7 +353,7 @@ app.get("/auth/discord", async (_req, res) => {
   res.redirect("https://discord.com/oauth2/authorize?" + params.toString());
 });
 
-app.get("/auth/discord/callback", async (req, res) => {
+app.get("/auth/discord/callback", rateLimit("oauth-callback", 30, 10 * 60 * 1000), async (req, res) => {
   try {
     const { code, state } = req.query;
     if (!code || !state || !(await consumeOAuthState(state))) {
@@ -310,7 +399,7 @@ app.get("/auth/discord/callback", async (req, res) => {
     const sessionToken = await issueSession(user, guilds);
     res.setHeader(
       "Set-Cookie",
-      "dashboard_session=" + encodeURIComponent(sessionToken) + "; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=86400"
+      "__Host-dashboard_session=" + encodeURIComponent(sessionToken) + "; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=86400"
     );
     res.redirect("/dashboard");
   } catch (error) {
@@ -322,9 +411,13 @@ app.get("/auth/discord/callback", async (req, res) => {
 });
 
 app.get("/logout", async (req, res) => {
-  const token = parseCookies(req.headers.cookie).dashboard_session;
+  const cookies = parseCookies(req.headers.cookie);
+  const token = cookies["__Host-dashboard_session"] || cookies.dashboard_session;
   if (token) await deleteDashboardSession(token);
-  res.setHeader("Set-Cookie", "dashboard_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0");
+  res.setHeader("Set-Cookie", [
+    "__Host-dashboard_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0",
+    "dashboard_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0"
+  ]);
   res.redirect("/");
 });
 
@@ -451,13 +544,14 @@ app.get("/pricing", async (req, res) => {
 });
 
 
-app.post("/billing/checkout/:guildId/:plan", async (req, res) => {
+app.post("/billing/checkout/:guildId/:plan", rateLimit("billing-checkout", 10, 10 * 60 * 1000), async (req, res) => {
   try {
     const session = await currentSession(req);
     if (!session) return res.redirect("/");
 
-    const guild = session.guilds.find(g => g.id === req.params.guildId);
-    if (!guild) return res.status(403).send("No autorizado.");
+    const access = await requireManagedGuild(req, session);
+    if (!access) return res.status(403).send("No autorizado.");
+    const { guild, discordGuild } = access;
 
     const plan = String(req.params.plan || "").toLowerCase();
     if (!["pro", "lifetime"].includes(plan)) {
@@ -519,7 +613,7 @@ app.post("/billing/checkout/:guildId/:plan", async (req, res) => {
   }
 });
 
-app.get("/billing/portal/:guildId", async (req, res) => {
+app.get("/billing/portal/:guildId", rateLimit("billing-portal", 20, 10 * 60 * 1000), async (req, res) => {
   try {
     const session = await currentSession(req);
     if (!session) return res.redirect("/");
@@ -763,7 +857,7 @@ app.get("/admin", async (req, res) => {
   }
 });
 
-app.post("/admin/activation-codes/generate", async (req, res) => {
+app.post("/admin/activation-codes/generate", rateLimit("admin-code-generate", 10, 60 * 60 * 1000), async (req, res) => {
   try {
     const session = await currentSession(req);
     if (!session) return res.redirect("/");
@@ -784,9 +878,20 @@ app.post("/admin/activation-codes/generate", async (req, res) => {
       createdByDiscordUserId: session.user.id
     });
 
+    await recordAuditLog({
+      actorDiscordUserId: session.user.id,
+      action: "activation_codes_generated",
+      details: {
+        plan,
+        quantity: codes.length,
+        expiresAt
+      }
+    });
+
     const codeText = codes.join("\n");
     const downloadHref = "data:text/plain;charset=utf-8," + encodeURIComponent(codeText);
 
+    res.setHeader("Cache-Control", "no-store, private");
     res.send(htmlShell("Códigos generados", `
       <div class="hero">
         <span class="pill">✅ Lote creado</span>
@@ -811,13 +916,23 @@ app.post("/admin/activation-codes/generate", async (req, res) => {
   }
 });
 
-app.post("/admin/activation-codes/disable", async (req, res) => {
+app.post("/admin/activation-codes/disable", rateLimit("admin-code-disable", 30, 60 * 60 * 1000), async (req, res) => {
   try {
     const session = await currentSession(req);
     if (!session) return res.redirect("/");
     if (!isFounder(session)) return res.status(403).send("No autorizado.");
 
-    const disabled = await disableActivationCode(req.body?.code);
+    const submittedCode = cleanText(req.body?.code, 32).trim();
+    const disabled = await disableActivationCode(submittedCode);
+
+    if (disabled) {
+      await recordAuditLog({
+        actorDiscordUserId: session.user.id,
+        action: "activation_code_disabled",
+        details: { codeHint: submittedCode.split("-").slice(0, 2).join("-") }
+      });
+    }
+
     return res.redirect("/admin?disabled=" + (disabled ? "1" : "0"));
   } catch (error) {
     console.error("Activation code disable error:", error);
@@ -825,15 +940,16 @@ app.post("/admin/activation-codes/disable", async (req, res) => {
   }
 });
 
-app.post("/api/servers/:guildId/activation-code", async (req, res) => {
+app.post("/api/servers/:guildId/activation-code", rateLimit("activation-redeem", 10, 5 * 60 * 1000), async (req, res) => {
   try {
     const session = await currentSession(req);
     if (!session) return res.status(401).send("Sesión requerida.");
 
-    const guild = session.guilds.find(g => g.id === req.params.guildId);
-    if (!guild || !client.guilds.cache.get(guild.id)) {
+    const access = await requireManagedGuild(req, session);
+    if (!access) {
       return res.status(403).send("No autorizado.");
     }
+    const { guild } = access;
 
     const code = cleanText(req.body?.code, 32).trim();
     if (!code) return res.redirect("/servers/" + encodeURIComponent(guild.id) + "?activation=invalid#activation");
@@ -845,6 +961,12 @@ app.post("/api/servers/:guildId/activation-code", async (req, res) => {
     });
 
     if (result.ok) {
+      await recordAuditLog({
+        actorDiscordUserId: session.user.id,
+        action: "activation_code_redeemed",
+        guildId: guild.id,
+        details: { plan: result.plan }
+      });
       return res.redirect(
         "/servers/" + encodeURIComponent(guild.id) +
         "?activation=success&plan=" + encodeURIComponent(result.plan) + "#activation"
@@ -905,11 +1027,10 @@ app.get("/servers/:guildId", async (req, res) => {
     const session = await currentSession(req);
     if (!session) return res.redirect("/");
 
-    const guild = session.guilds.find(g => g.id === req.params.guildId);
-    if (!guild) return res.status(403).send("No autorizado.");
+    const access = await requireManagedGuild(req, session);
+    if (!access) return res.status(403).send("No autorizado.");
 
-    const discordGuild = client.guilds.cache.get(guild.id);
-    if (!discordGuild) return res.redirect("/dashboard");
+    const { guild, discordGuild } = access;
 
     const [cfg, stats, recentTickets, plan, usage] = await Promise.all([
       getGuildConfig(guild.id),
@@ -1125,15 +1246,16 @@ app.get("/servers/:guildId", async (req, res) => {
   }
 });
 
-app.post("/api/servers/:guildId", async (req, res) => {
+app.post("/api/servers/:guildId", rateLimit("server-config", 30, 5 * 60 * 1000), async (req, res) => {
   try {
     const session = await currentSession(req);
     if (!session) return res.status(401).send("Sesión requerida.");
 
-    const guild = session.guilds.find(g => g.id === req.params.guildId);
-    if (!guild || !client.guilds.cache.get(guild.id)) {
+    const access = await requireManagedGuild(req, session);
+    if (!access) {
       return res.status(403).send("No autorizado.");
     }
+    const { guild } = access;
 
     const body = req.body || {};
     const planState = await getGuildPlan(guild.id);
@@ -1155,6 +1277,7 @@ app.post("/api/servers/:guildId", async (req, res) => {
     }
 
     await saveGuildConfig(guild.id, {
+
       founderId: cleanText(body.founderId,100).trim() || config.founderId,
       staffRoleId: cleanText(body.staffRoleId,100).trim(),
       ticketCategoryId: cleanText(body.ticketCategoryId,100).trim(),
