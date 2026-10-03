@@ -387,7 +387,7 @@ app.get("/", async (req, res) => {
   const publicPlans = Object.values(PLAN_DEFINITIONS).map(def => {
     const suffix = def.key === "pro" ? '<span>/mes</span>' : '';
     const highlights = def.features.slice(0, 3).map(x => "<div>✓ " + escapeHtml(x, 150) + "</div>").join("");
-    return "<article class=\\"card price-card " + (def.key === "pro" ? "featured" : "") + "\\">" +
+    return "<article class=\"card price-card " + (def.key === "pro" ? "featured" : "") + "\">" +
       (def.key === "pro" ? '<div class="price-badge">MÁS USADO</div>' : '') +
       '<div class="price-name">' + escapeHtml(def.name, 40) + '</div>' +
       '<div class="price-value">' + escapeHtml(def.price, 20) + suffix + '</div>' +
