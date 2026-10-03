@@ -43,6 +43,11 @@ async function initDatabase() {
   `);
 
   await p.query(`
+    ALTER TABLE guild_configs
+    ADD COLUMN IF NOT EXISTS ticket_category_id TEXT
+  `);
+
+  await p.query(`
     CREATE TABLE IF NOT EXISTS tickets (
       channel_id TEXT PRIMARY KEY,
       guild_id TEXT NOT NULL,
