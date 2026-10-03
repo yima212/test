@@ -208,6 +208,54 @@ async function loadOpenTickets() {
   }));
 }
 
+async function getGuildDashboardStats(guildId) {
+  const result = await getPool().query(
+    `SELECT
+       COUNT(*)::int AS total_tickets,
+       COUNT(*) FILTER (WHERE status = 'open')::int AS open_tickets,
+       COUNT(*) FILTER (WHERE status = 'closed')::int AS closed_tickets,
+       COUNT(*) FILTER (WHERE escalated = TRUE)::int AS escalated_tickets,
+       COALESCE((
+         SELECT COUNT(*)::int
+         FROM ticket_messages tm
+         INNER JOIN tickets t2 ON t2.channel_id = tm.channel_id
+         WHERE t2.guild_id = $1
+       ), 0) AS total_messages
+     FROM tickets
+     WHERE guild_id = $1`,
+    [guildId]
+  );
+
+  const row = result.rows[0];
+  return {
+    totalTickets: row?.total_tickets || 0,
+    openTickets: row?.open_tickets || 0,
+    closedTickets: row?.closed_tickets || 0,
+    escalatedTickets: row?.escalated_tickets || 0,
+    totalMessages: row?.total_messages || 0
+  };
+}
+
+async function getRecentGuildTickets(guildId, limit = 10) {
+  const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 50);
+  const result = await getPool().query(
+    `SELECT
+       channel_id,
+       owner_id,
+       status,
+       escalated,
+       created_at,
+       closed_at
+     FROM tickets
+     WHERE guild_id = $1
+     ORDER BY created_at DESC
+     LIMIT $2`,
+    [guildId, safeLimit]
+  );
+
+  return result.rows;
+}
+
 module.exports = {
   getPool,
   initDatabase,
@@ -217,5 +265,7 @@ module.exports = {
   addTicketMessage,
   setTicketEscalated,
   closeTicket,
-  loadOpenTickets
+  loadOpenTickets,
+  getGuildDashboardStats,
+  getRecentGuildTickets
 };
