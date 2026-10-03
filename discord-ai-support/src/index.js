@@ -56,31 +56,45 @@ function ticketPanel() {
   return { embeds: [embed], components: [row] };
 }
 
-client.once("ready", async () => {
-  console.log(`✅ Conectado como ${client.user.tag}`);
+const panelCommand = new SlashCommandBuilder()
+  .setName("panel")
+  .setDescription("Publica el panel para abrir tickets")
+  .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild.bitfield)
+  .toJSON();
+
+async function registerPanelCommand(guild) {
+  if (!guild) return;
 
   try {
     const rest = new REST({ version: "10" }).setToken(config.token);
 
-    const commands = [
-      new SlashCommandBuilder()
-        .setName("panel")
-        .setDescription("Publica el panel para abrir tickets")
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild.bitfield)
-        .toJSON()
-    ];
-
     await rest.put(
-      Routes.applicationGuildCommands(config.clientId, config.guildId),
-      { body: commands }
+      Routes.applicationGuildCommands(config.clientId, guild.id),
+      { body: [panelCommand] }
     );
 
-    console.log("✅ /panel registrado automáticamente.");
+    console.log(`✅ /panel registrado en ${guild.name} (${guild.id}).`);
   } catch (error) {
-    console.error("❌ No se pudo registrar /panel:", error);
+    console.error(`❌ No se pudo registrar /panel en ${guild.id}:`, error.message);
+  }
+}
+
+client.once("ready", async () => {
+  console.log(`✅ Conectado como ${client.user.tag}`);
+
+  const guilds = [...client.guilds.cache.values()];
+  console.log(`🌐 Servidores conectados: ${guilds.length}`);
+
+  for (const guild of guilds) {
+    await registerPanelCommand(guild);
   }
 
   console.log("✅ Sistema de tickets listo.");
+});
+
+client.on("guildCreate", async guild => {
+  console.log(`➕ Bot añadido al servidor: ${guild.name} (${guild.id})`);
+  await registerPanelCommand(guild);
 });
 
 const STAFF_ROLE_KEYWORDS = [
