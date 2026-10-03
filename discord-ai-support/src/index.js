@@ -229,7 +229,7 @@ client.on("interactionCreate", async interaction => {
   }
 });
 
-async function escalateToFounder(channel, session, reason) {
+async function escalateToFounder(channel, session, reason, aiResponse = "") {
   if (session.escalated) return true;
   if (!config.founderId) return false;
 
@@ -246,6 +246,7 @@ async function escalateToFounder(channel, session, reason) {
       `🎫 **Ticket:** ${channel}\n` +
       `👤 **Usuario:** <@${session.ownerId}>\n` +
       `📌 **Motivo:** ${reason}\n\n` +
+      `🤖 **Respuesta exacta enviada al usuario:**\n${aiResponse || "(sin respuesta)"}\n\n` +
       `📝 **Conversación reciente:**\n${summary || "(sin mensajes)"}\n\n` +
       `🔗 ${channel.url}`
   });
@@ -253,7 +254,6 @@ async function escalateToFounder(channel, session, reason) {
   session.escalated = true;
   return true;
 }
-
 client.on("messageCreate", async message => {
   if (message.author.bot || !message.guild) return;
   if (message.channel.type !== ChannelType.GuildText) return;
@@ -284,28 +284,33 @@ client.on("messageCreate", async message => {
     session.history.push({ role: "assistant", content: result.text });
 
     if (result.escalate || shouldEscalate(result.text)) {
-      const founder = await client.users.fetch(config.founderId);
+      try {
+        const sent = await escalateToFounder(
+          message.channel,
+          session,
+          "La consulta requiere intervención humana.",
+          result.text
+        );
 
-      const summary = session.history
-        .slice(-8)
-        .map(x => `${x.role === "user" ? "Usuario" : "IA"}: ${x.content}`)
-        .join("\n");
-
-      await founder.send({
-        content:
-          `🚨 **Ticket requiere atención**\n\n` +
-          `🎫 **Ticket:** ${message.channel}\n` +
-          `👤 **Usuario:** <@${session.ownerId}>\n\n` +
-          `📝 **Conversación reciente:**\n${summary}\n\n` +
-          `🔗 ${message.channel.url}`
-      });
-
-      await message.channel.send(
-        "👤 No tengo información suficiente para resolver esto con seguridad. He avisado al equipo para que revise tu ticket."
-      );
+        if (sent) {
+          await message.channel.send(
+            result.text || "👤 Este caso requiere intervención humana. He avisado al equipo para que lo revise."
+          );
+        } else {
+          await message.channel.send(
+            "⚠️ " +
+            (result.text || "Este caso requiere intervención humana.") +
+            "\n\nNo he podido avisar al fundador. Revisa la configuración de FOUNDER_USER_ID."
+          );
+        }
+      } catch (error) {
+        console.error("Error escalando ticket:", error);
+        await message.channel.send(
+          "⚠️ Este caso requiere intervención humana, pero no he podido avisar al equipo en este momento."
+        );
+      }
       return;
     }
-
     await message.channel.send(result.text);
   } catch (error) {
     console.error(error);
