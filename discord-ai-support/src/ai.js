@@ -1,9 +1,6 @@
-const OpenAI = require("openai");
 const config = require("./config");
 
-const client = config.openaiKey
-  ? new OpenAI({ apiKey: config.openaiKey })
-  : null;
+const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 
 const SYSTEM_PROMPT = `
 Eres el asistente de soporte de un servidor de Discord.
@@ -19,22 +16,53 @@ REGLAS:
 `;
 
 async function answerWithAI({ history }) {
-  if (!client) {
+  if (!config.geminiKey) {
     return {
-      text: "👤 No puedo responder todavía porque el agente IA no está configurado. He avisado al equipo.",
+      text: "👤 El asistente IA no está configurado todavía. He avisado al equipo.",
       escalate: true
     };
   }
 
-  const response = await client.responses.create({
-    model: config.aiModel,
-    instructions: SYSTEM_PROMPT,
-    input: history.map(m => ({ role: m.role, content: m.content }))
+  const model = config.aiModel || "gemini-2.5-flash-lite";
+  const url = `${GEMINI_URL}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(config.geminiKey)}`;
+
+  const contents = [
+    {
+      role: "user",
+      parts: [{ text: SYSTEM_PROMPT }]
+    },
+    ...history.map(m => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }]
+    }))
+  ];
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents,
+      generationConfig: {
+        temperature: 0.2,
+        maxOutputTokens: 500
+      }
+    })
   });
 
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`Gemini API ${response.status}: ${body}`);
+  }
+
+  const data = await response.json();
+  const text = data?.candidates?.[0]?.content?.parts
+    ?.map(part => part.text || "")
+    .join("")
+    .trim();
+
   return {
-    text: response.output_text?.trim() || "👤 Necesito que el equipo revise este caso.",
-    escalate: !response.output_text
+    text: text || "👤 Necesito que el equipo revise este caso.",
+    escalate: !text
   };
 }
 
