@@ -15,6 +15,7 @@ const {
 
 const config = require("./config");
 const { answerWithAI, shouldEscalate } = require("./ai");
+const { getPlanDefinition, normalizePlan } = require("./plans");
 const { startDashboard } = require("./web");
 const {
   initDatabase,
@@ -23,7 +24,10 @@ const {
   addTicketMessage,
   setTicketEscalated,
   closeTicket,
-  loadOpenTickets
+  loadOpenTickets,
+  getGuildPlan,
+  consumeGuildQuota,
+  releaseGuildQuota
 } = require("./db");
 
 const client = new Client({
@@ -313,6 +317,20 @@ client.on("interactionCreate", async interaction => {
       });
     }
 
+    const planState = await getGuildPlan(guild.id);
+    const effectivePlan = planState.status === "active" ? normalizePlan(planState.plan) : "free";
+    const plan = getPlanDefinition(effectivePlan);
+    const ticketAllowed = await consumeGuildQuota(guild.id, "tickets", plan.ticketsPerMonth);
+
+    if (!ticketAllowed) {
+      return interaction.reply({
+        content:
+          "🚫 Has alcanzado el límite de **" + plan.ticketsPerMonth.toLocaleString("es-ES") +
+          " tickets nuevos este mes** del plan " + plan.name + ". Puedes cambiar de plan desde el Dashboard.",
+        ephemeral: true
+      });
+    }
+
     const guildConfig = await getGuildConfig(guild.id);
     const permissionOverwrites = [
       {
@@ -373,6 +391,7 @@ client.on("interactionCreate", async interaction => {
     } catch (error) {
       console.error("❌ No se pudo guardar el ticket en PostgreSQL:", error.message);
       await channel.delete().catch(() => {});
+
       return interaction.reply({
         content: "⚠️ No se pudo guardar el ticket. Inténtalo de nuevo.",
         ephemeral: true
@@ -548,6 +567,23 @@ client.on("messageCreate", async message => {
     const handledDirectly = await handleDirectRequest(message, session);
     if (handledDirectly) return;
 
+    const planState = await getGuildPlan(message.guild.id);
+    const effectivePlan = planState.status === "active" ? normalizePlan(planState.plan) : "free";
+    const plan = getPlanDefinition(effectivePlan);
+    const aiQuotaReserved = await consumeGuildQuota(
+      message.guild.id,
+      "ai",
+      plan.aiRepliesPerMonth
+    );
+
+    if (!aiQuotaReserved) {
+      await message.channel.send(
+        "🚫 Has alcanzado el límite de **" + plan.aiRepliesPerMonth.toLocaleString("es-ES") +
+        " respuestas IA este mes** del plan " + plan.name + ". Puedes cambiar de plan desde el Dashboard."
+      );
+      return;
+    }
+
     await message.channel.sendTyping();
 
     const result = await answerWithAI({
@@ -593,6 +629,9 @@ client.on("messageCreate", async message => {
     }
     await message.channel.send(result.text);
   } catch (error) {
+    await releaseGuildQuota(message.guild.id, "ai").catch(releaseError => {
+      console.error("❌ No se pudo liberar la cuota IA:", releaseError.message);
+    });
     console.error(error);
     await message.channel.send(
       "⚠️ He tenido un problema procesando tu consulta. He avisado al equipo."
