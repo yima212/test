@@ -2,8 +2,7 @@ require("dotenv").config();
 
 const required = [
   "DISCORD_TOKEN",
-  "CLIENT_ID",
-  "FOUNDER_USER_ID"
+  "CLIENT_ID"
 ];
 
 for (const key of required) {
