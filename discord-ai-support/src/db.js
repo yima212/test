@@ -35,6 +35,7 @@ async function initDatabase() {
       guild_id TEXT PRIMARY KEY,
       founder_id TEXT,
       staff_role_id TEXT,
+      ticket_category_id TEXT,
       welcome_text TEXT NOT NULL DEFAULT 'Hola 👋 Cuéntame qué necesitas.',
       knowledge TEXT NOT NULL DEFAULT '',
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -80,13 +81,14 @@ async function initDatabase() {
 async function getGuildConfig(guildId) {
   const fallback = {
     staffRoleId: config.staffRoleId || "",
+    ticketCategoryId: config.ticketCategoryId || "",
     founderId: config.founderId || "",
     welcomeText: "Hola 👋 Cuéntame qué necesitas.",
     knowledge: ""
   };
 
   const result = await getPool().query(
-    "SELECT founder_id, staff_role_id, welcome_text, knowledge FROM guild_configs WHERE guild_id = $1",
+    "SELECT founder_id, staff_role_id, ticket_category_id, welcome_text, knowledge FROM guild_configs WHERE guild_id = $1",
     [guildId]
   );
 
@@ -95,6 +97,7 @@ async function getGuildConfig(guildId) {
   const row = result.rows[0];
   return {
     staffRoleId: row.staff_role_id || "",
+    ticketCategoryId: row.ticket_category_id || fallback.ticketCategoryId,
     founderId: row.founder_id || fallback.founderId,
     welcomeText: row.welcome_text || fallback.welcomeText,
     knowledge: row.knowledge || ""
@@ -104,12 +107,13 @@ async function getGuildConfig(guildId) {
 async function saveGuildConfig(guildId, cfg) {
   await getPool().query(
     `INSERT INTO guild_configs
-      (guild_id, founder_id, staff_role_id, welcome_text, knowledge, updated_at)
-     VALUES ($1, $2, $3, $4, $5, NOW())
+      (guild_id, founder_id, staff_role_id, ticket_category_id, welcome_text, knowledge, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, NOW())
      ON CONFLICT (guild_id)
      DO UPDATE SET
        founder_id = EXCLUDED.founder_id,
        staff_role_id = EXCLUDED.staff_role_id,
+       ticket_category_id = EXCLUDED.ticket_category_id,
        welcome_text = EXCLUDED.welcome_text,
        knowledge = EXCLUDED.knowledge,
        updated_at = NOW()`,
@@ -117,6 +121,7 @@ async function saveGuildConfig(guildId, cfg) {
       guildId,
       cfg.founderId || "",
       cfg.staffRoleId || "",
+      cfg.ticketCategoryId || "",
       cfg.welcomeText || "",
       cfg.knowledge || ""
     ]
