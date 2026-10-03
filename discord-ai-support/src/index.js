@@ -15,7 +15,8 @@ const {
 
 const config = require("./config");
 const { answerWithAI, shouldEscalate } = require("./ai");
-const { startDashboard, getGuildConfig } = require("./web");
+const { startDashboard } = require("./web");
+const { initDatabase, getGuildConfig } = require("./db");
 
 const client = new Client({
   intents: [
@@ -155,7 +156,7 @@ async function notifyStaffMember({ member, channel, session, requestedBy }) {
 
 async function handleDirectRequest(message, session) {
   const text = message.content.trim();
-  const guildConfig = getGuildConfig(message.guild.id);
+  const guildConfig = await getGuildConfig(message.guild.id);
 
   if (textLooksLikeTimeQuestion(text)) {
     await message.channel.send(
@@ -271,7 +272,7 @@ client.on("interactionCreate", async interaction => {
       });
     }
 
-    const guildConfig = getGuildConfig(guild.id);
+    const guildConfig = await getGuildConfig(guild.id);
     const permissionOverwrites = [
       {
         id: guild.roles.everyone.id,
@@ -406,7 +407,7 @@ client.on("interactionCreate", async interaction => {
 async function escalateToFounder(channel, session, reason, aiResponse = "") {
   if (session.escalated) return true;
 
-  const guildConfig = getGuildConfig(channel.guild.id);
+  const guildConfig = await getGuildConfig(channel.guild.id);
   if (!guildConfig.founderId) return false;
 
   const founder = await client.users.fetch(guildConfig.founderId);
@@ -435,7 +436,7 @@ client.on("messageCreate", async message => {
   if (message.channel.type !== ChannelType.GuildText) return;
   if (!message.channel.topic?.startsWith("ticket-owner:")) return;
 
-  const guildConfig = getGuildConfig(message.guild.id);
+  const guildConfig = await getGuildConfig(message.guild.id);
   if (guildConfig.staffRoleId && message.member.roles.cache.has(guildConfig.staffRoleId)) return;
   if (guildConfig.founderId && message.author.id === guildConfig.founderId) return;
 
@@ -530,5 +531,16 @@ client.on("messageCreate", async message => {
   }
 });
 
-startDashboard({ client, sessions });
-client.login(config.token);
+async function bootstrap() {
+  try {
+    await initDatabase();
+  } catch (error) {
+    console.error("❌ PostgreSQL no disponible:", error.message);
+    process.exit(1);
+  }
+
+  startDashboard({ client, sessions });
+  await client.login(config.token);
+}
+
+bootstrap();
