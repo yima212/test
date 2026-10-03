@@ -3,7 +3,6 @@ require("dotenv").config();
 const required = [
   "DISCORD_TOKEN",
   "CLIENT_ID",
-  "GUILD_ID",
   "FOUNDER_USER_ID"
 ];
 
@@ -16,7 +15,6 @@ for (const key of required) {
 module.exports = {
   token: (process.env.DISCORD_TOKEN || "").trim().replace(/^["']|["']$/g, "").replace(/^Bot\s+/i, "").trim(),
   clientId: (process.env.CLIENT_ID || "").trim(),
-  guildId: (process.env.GUILD_ID || "").trim(),
   founderId: (process.env.FOUNDER_USER_ID || "").trim(),
   ticketCategoryId: process.env.TICKET_CATEGORY_ID || null,
   staffRoleId: process.env.STAFF_ROLE_ID || null,
