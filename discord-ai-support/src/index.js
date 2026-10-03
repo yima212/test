@@ -7,7 +7,10 @@ const {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  EmbedBuilder
+  EmbedBuilder,
+  REST,
+  Routes,
+  SlashCommandBuilder
 } = require("discord.js");
 
 const config = require("./config");
@@ -45,7 +48,29 @@ function ticketPanel() {
 
 client.once("ready", async () => {
   console.log(`✅ Conectado como ${client.user.tag}`);
-  console.log("Usa /panel cuando el comando slash esté registrado.");
+
+  try {
+    const rest = new REST({ version: "10" }).setToken(config.token);
+
+    const commands = [
+      new SlashCommandBuilder()
+        .setName("panel")
+        .setDescription("Publica el panel para abrir tickets")
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild.bitfield)
+        .toJSON()
+    ];
+
+    await rest.put(
+      Routes.applicationGuildCommands(config.clientId, config.guildId),
+      { body: commands }
+    );
+
+    console.log("✅ /panel registrado automáticamente.");
+  } catch (error) {
+    console.error("❌ No se pudo registrar /panel:", error);
+  }
+
+  console.log("✅ Sistema de tickets listo.");
 });
 
 client.on("interactionCreate", async interaction => {
