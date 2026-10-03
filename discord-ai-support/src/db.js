@@ -31,6 +31,49 @@ async function initDatabase() {
   const p = getPool();
 
   await p.query(`
+    CREATE TABLE IF NOT EXISTS dashboard_users (
+      discord_user_id TEXT PRIMARY KEY,
+      username TEXT NOT NULL,
+      avatar TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      last_login_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await p.query(`
+    CREATE TABLE IF NOT EXISTS dashboard_sessions (
+      token TEXT PRIMARY KEY,
+      discord_user_id TEXT NOT NULL REFERENCES dashboard_users(discord_user_id) ON DELETE CASCADE,
+      guilds JSONB NOT NULL DEFAULT '[]'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      expires_at TIMESTAMPTZ NOT NULL
+    )
+  `);
+
+  await p.query(`
+    CREATE INDEX IF NOT EXISTS idx_dashboard_sessions_expiry
+    ON dashboard_sessions (expires_at)
+  `);
+
+  await p.query(`
+    CREATE TABLE IF NOT EXISTS oauth_states (
+      state TEXT PRIMARY KEY,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      expires_at TIMESTAMPTZ NOT NULL
+    )
+  `);
+
+  await p.query(`
+    CREATE TABLE IF NOT EXISTS guild_subscriptions (
+      guild_id TEXT PRIMARY KEY,
+      plan TEXT NOT NULL DEFAULT 'free',
+      status TEXT NOT NULL DEFAULT 'active',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await p.query(`
     CREATE TABLE IF NOT EXISTS guild_configs (
       guild_id TEXT PRIMARY KEY,
       founder_id TEXT,
@@ -208,6 +251,114 @@ async function loadOpenTickets() {
   }));
 }
 
+async function upsertDashboardUser(user) {
+  await getPool().query(
+    `INSERT INTO dashboard_users (discord_user_id, username, avatar, created_at, last_login_at)
+     VALUES ($1, $2, $3, NOW(), NOW())
+     ON CONFLICT (discord_user_id)
+     DO UPDATE SET
+       username = EXCLUDED.username,
+       avatar = EXCLUDED.avatar,
+       last_login_at = NOW()`,
+    [user.id, user.username || "Discord User", user.avatar || null]
+  );
+}
+
+async function createDashboardSession({ token, user, guilds, expiresAt }) {
+  await upsertDashboardUser(user);
+  await getPool().query(
+    `INSERT INTO dashboard_sessions
+      (token, discord_user_id, guilds, expires_at)
+     VALUES ($1, $2, $3::jsonb, $4)`,
+    [token, user.id, JSON.stringify(guilds || []), expiresAt]
+  );
+}
+
+async function getDashboardSession(token) {
+  const result = await getPool().query(
+    `SELECT
+       s.token,
+       s.discord_user_id,
+       s.guilds,
+       s.expires_at,
+       u.username,
+       u.avatar
+     FROM dashboard_sessions s
+     INNER JOIN dashboard_users u ON u.discord_user_id = s.discord_user_id
+     WHERE s.token = $1
+       AND s.expires_at > NOW()`,
+    [token]
+  );
+
+  if (result.rowCount === 0) return null;
+
+  return {
+    token: result.rows[0].token,
+    user: {
+      id: result.rows[0].discord_user_id,
+      username: result.rows[0].username,
+      avatar: result.rows[0].avatar
+    },
+    guilds: Array.isArray(result.rows[0].guilds)
+      ? result.rows[0].guilds
+      : [],
+    createdAt: null
+  };
+}
+
+async function deleteDashboardSession(token) {
+  await getPool().query(
+    "DELETE FROM dashboard_sessions WHERE token = $1",
+    [token]
+  );
+}
+
+async function createOAuthState(state, expiresAt) {
+  await getPool().query(
+    `INSERT INTO oauth_states (state, expires_at)
+     VALUES ($1, $2)`,
+    [state, expiresAt]
+  );
+}
+
+async function consumeOAuthState(state) {
+  const result = await getPool().query(
+    `DELETE FROM oauth_states
+     WHERE state = $1
+       AND expires_at > NOW()
+     RETURNING state`,
+    [state]
+  );
+  return result.rowCount > 0;
+}
+
+async function cleanupExpiredSessions() {
+  await getPool().query("DELETE FROM dashboard_sessions WHERE expires_at <= NOW()");
+  await getPool().query("DELETE FROM oauth_states WHERE expires_at <= NOW()");
+}
+
+async function getGuildPlan(guildId) {
+  const result = await getPool().query(
+    "SELECT plan, status FROM guild_subscriptions WHERE guild_id = $1",
+    [guildId]
+  );
+
+  if (result.rowCount === 0) {
+    await getPool().query(
+      `INSERT INTO guild_subscriptions (guild_id, plan, status)
+       VALUES ($1, 'free', 'active')
+       ON CONFLICT (guild_id) DO NOTHING`,
+      [guildId]
+    );
+    return { plan: "free", status: "active" };
+  }
+
+  return {
+    plan: result.rows[0].plan,
+    status: result.rows[0].status
+  };
+}
+
 async function getGuildDashboardStats(guildId) {
   const result = await getPool().query(
     `SELECT
@@ -267,5 +418,13 @@ module.exports = {
   closeTicket,
   loadOpenTickets,
   getGuildDashboardStats,
-  getRecentGuildTickets
+  getRecentGuildTickets,
+  upsertDashboardUser,
+  createDashboardSession,
+  getDashboardSession,
+  deleteDashboardSession,
+  createOAuthState,
+  consumeOAuthState,
+  cleanupExpiredSessions,
+  getGuildPlan
 };
