@@ -923,6 +923,36 @@ async function getGuildTicketActivity(guildId, days = 30) {
   }));
 }
 
+async function getGuildTicketTypeStats(guildId) {
+  const result = await getPool().query(
+    `WITH first_messages AS (
+       SELECT DISTINCT ON (channel_id)
+         channel_id,
+         content
+       FROM ticket_messages
+       WHERE role = 'user'
+       ORDER BY channel_id, created_at ASC
+     ), classified AS (
+       SELECT
+         CASE
+           WHEN LOWER(COALESCE(f.content, '')) ~ '(refund|reembolso|cobro|pago|billing|factura)' THEN 'Facturación'
+           WHEN LOWER(COALESCE(f.content, '')) ~ '(report|reporte|bug|error|fallo|denuncia)' THEN 'Reportes'
+           WHEN LOWER(COALESCE(f.content, '')) ~ '(como|cómo|duda|pregunta|ayuda|what|how)' THEN 'Dudas'
+           ELSE 'Soporte'
+         END AS ticket_type
+       FROM tickets t
+       LEFT JOIN first_messages f ON f.channel_id = t.channel_id
+       WHERE t.guild_id = $1
+     )
+     SELECT ticket_type, COUNT(*)::int AS total
+     FROM classified
+     GROUP BY ticket_type
+     ORDER BY total DESC, ticket_type ASC`,
+    [guildId]
+  );
+  return result.rows.map(row => ({ type: row.ticket_type, total: Number(row.total || 0) }));
+}
+
 async function getRecentGuildTickets(guildId, limit = 10) {
   const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 50);
   const result = await getPool().query(
@@ -955,6 +985,7 @@ module.exports = {
   loadOpenTickets,
   getGuildDashboardStats,
   getRecentGuildTickets,
+  getGuildTicketTypeStats,
   getGuildTicketActivity,
   upsertDashboardUser,
   createDashboardSession,
