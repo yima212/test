@@ -16,7 +16,15 @@ const {
 const config = require("./config");
 const { answerWithAI, shouldEscalate } = require("./ai");
 const { startDashboard } = require("./web");
-const { initDatabase, getGuildConfig } = require("./db");
+const {
+  initDatabase,
+  getGuildConfig,
+  createTicket,
+  addTicketMessage,
+  setTicketEscalated,
+  closeTicket,
+  loadOpenTickets
+} = require("./db");
 
 const client = new Client({
   intents: [
@@ -130,6 +138,25 @@ async function findStaffMember(guild, guildConfig) {
   ) || null;
 }
 
+async function markSessionEscalated(channelId, session, value = true) {
+  session.escalated = value;
+  try {
+    await setTicketEscalated(channelId, value);
+  } catch (error) {
+    console.error("❌ No se pudo persistir el estado de escalada:", error.message);
+  }
+}
+
+async function addSessionMessage(channelId, session, role, content) {
+  const safeContent = String(content || "").slice(0, 12000);
+  session.history.push({ role, content: safeContent });
+  try {
+    await addTicketMessage(channelId, role, safeContent);
+  } catch (error) {
+    console.error("❌ No se pudo persistir el mensaje del ticket:", error.message);
+  }
+}
+
 async function notifyStaffMember({ member, channel, session, requestedBy }) {
   const dmMessage =
     "🛎️ **Solicitud de soporte humano**\n\n" +
@@ -200,7 +227,7 @@ async function handleDirectRequest(message, session) {
         ? "✅ Vale. He contactado con " + mentionedMember.toString() + "."
         : "✅ He avisado a " + mentionedMember.toString() + " en el ticket, pero no he podido enviarle un DM."
     );
-    session.escalated = true;
+    await markSessionEscalated(message.channel.id, session, true);
     return true;
   }
 
@@ -220,7 +247,7 @@ async function handleDirectRequest(message, session) {
         await message.channel.send(
           "👤 No he encontrado un miembro del staff disponible. He avisado al fundador."
         );
-        session.escalated = true;
+        await markSessionEscalated(message.channel.id, session, true);
         return true;
       }
 
@@ -316,11 +343,27 @@ client.on("interactionCreate", async interaction => {
       permissionOverwrites
     });
 
-    sessions.set(channel.id, {
+    const session = {
       ownerId: interaction.user.id,
       history: [],
       escalated: false
-    });
+    };
+    sessions.set(channel.id, session);
+
+    try {
+      await createTicket({
+        channelId: channel.id,
+        guildId: guild.id,
+        ownerId: interaction.user.id
+      });
+    } catch (error) {
+      console.error("❌ No se pudo guardar el ticket en PostgreSQL:", error.message);
+      await channel.delete().catch(() => {});
+      return interaction.reply({
+        content: "⚠️ No se pudo guardar el ticket. Inténtalo de nuevo.",
+        ephemeral: true
+      });
+    }
 
     const closeRow = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
@@ -399,6 +442,12 @@ client.on("interactionCreate", async interaction => {
     }
 
     await interaction.reply("🔒 Cerrando ticket...");
+    try {
+      await closeTicket(interaction.channel.id);
+    } catch (error) {
+      console.error("❌ No se pudo cerrar el ticket en PostgreSQL:", error.message);
+    }
+
     sessions.delete(interaction.channel.id);
     setTimeout(() => interaction.channel.delete().catch(() => {}), 1500);
   }
@@ -428,7 +477,7 @@ async function escalateToFounder(channel, session, reason, aiResponse = "") {
       `🔗 ${channel.url}`
   });
 
-  session.escalated = true;
+  await markSessionEscalated(channel.id, session, true);
   return true;
 }
 client.on("messageCreate", async message => {
@@ -455,12 +504,15 @@ client.on("messageCreate", async message => {
   // Mencionar al agente vuelve a activar la conversación del ticket.
   if (mentionedAgent) {
     session.escalated = false;
+    await setTicketEscalated(message.channel.id, false);
 
     if (!cleanContent) {
-      session.history.push({
-        role: "user",
-        content: "[El usuario volvió a mencionar al agente para continuar la conversación.]"
-      });
+      await addSessionMessage(
+        message.channel.id,
+        session,
+        "user",
+        "[El usuario volvió a mencionar al agente para continuar la conversación.]"
+      );
 
       await message.channel.send(
         "👋 Aquí estoy de nuevo. Cuéntame qué necesitas y seguimos con tu ticket."
@@ -469,7 +521,12 @@ client.on("messageCreate", async message => {
     }
   }
 
-  session.history.push({ role: "user", content: cleanContent || message.content });
+  await addSessionMessage(
+    message.channel.id,
+    session,
+    "user",
+    cleanContent || message.content
+  );
 
   if (session.escalated) return;
 
@@ -485,7 +542,12 @@ client.on("messageCreate", async message => {
       guildConfig
     });
 
-    session.history.push({ role: "assistant", content: result.text });
+    await addSessionMessage(
+      message.channel.id,
+      session,
+      "assistant",
+      result.text
+    );
 
     if (result.escalate || shouldEscalate(result.text)) {
       try {
@@ -538,6 +600,18 @@ async function bootstrap() {
     console.error("❌ PostgreSQL no disponible:", error.message);
     process.exit(1);
   }
+
+  const openTickets = await loadOpenTickets();
+
+  for (const ticket of openTickets) {
+    sessions.set(ticket.channelId, {
+      ownerId: ticket.ownerId,
+      history: ticket.history,
+      escalated: ticket.escalated
+    });
+  }
+
+  console.log(`✅ ${openTickets.length} ticket(s) abiertos restaurados desde PostgreSQL.`);
 
   startDashboard({ client, sessions });
   await client.login(config.token);
