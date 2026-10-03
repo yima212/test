@@ -15,8 +15,16 @@ const {
   consumeOAuthState,
   cleanupExpiredSessions,
   getGuildPlan,
-  saveGuildSubscription
+  saveGuildSubscription,
+  getGuildUsage
 } = require("./db");
+
+const {
+  PLAN_DEFINITIONS,
+  getPlanDefinition,
+  normalizePlan,
+  formatLimit
+} = require("./plans");
 
 const app = express();
 const stripe = config.stripeSecretKey ? new Stripe(config.stripeSecretKey) : null;
@@ -349,40 +357,63 @@ app.get("/pricing", async (req, res) => {
   const guild = session.guilds.find(g => g.id === guildId);
   if (!guild) return res.status(403).send("No autorizado.");
 
-  const plan = await getGuildPlan(guild.id);
-  const planUpper = String(plan.plan || "free").toUpperCase();
-
-  const currentPlanBlock = plan.plan === "free"
+  const planState = await getGuildPlan(guild.id);
+  const currentPlanKey = planState.status === "active" ? normalizePlan(planState.plan) : "free";
+  const currentPlan = getPlanDefinition(currentPlanKey);
+  const currentPlanBlock = currentPlanKey === "free"
     ? "<span class=\"badge muted\">FREE</span>"
-    : "<span class=\"badge success\">" + escapeHtml(planUpper,20) + " · " + escapeHtml(plan.status,30) + "</span>";
+    : "<span class=\"badge success\">" + escapeHtml(currentPlan.name,30) + " · " + escapeHtml(planState.status,30) + "</span>";
 
-  const portalButton = plan.stripeCustomerId
+  const portalButton = planState.stripeCustomerId
     ? "<a class=\"btn alt\" href=\"/billing/portal/" + encodeURIComponent(guild.id) + "\">Gestionar facturación</a>"
     : "";
 
-  const proButton = plan.plan === "free"
+  const canBuyPaid = currentPlanKey === "free";
+  const proButton = canBuyPaid
     ? "<form method=\"post\" action=\"/billing/checkout/" + encodeURIComponent(guild.id) + "/pro\" style=\"margin:0\"><button class=\"btn\" type=\"submit\">Contratar Pro · $6/mes</button></form>"
     : "<span class=\"badge muted\">Plan ya activo</span>";
 
-  const lifetimeButton = plan.plan === "free"
+  const lifetimeButton = canBuyPaid
     ? "<form method=\"post\" action=\"/billing/checkout/" + encodeURIComponent(guild.id) + "/lifetime\" style=\"margin:0\"><button class=\"btn\" type=\"submit\">Comprar Lifetime · $30</button></form>"
     : "<span class=\"badge muted\">Plan ya activo</span>";
+
+  const planCards = Object.values(PLAN_DEFINITIONS).map(def => {
+    const priceSuffix = def.key === "pro"
+      ? "<span style=\"font-size:15px;color:#a1a1aa\">/mes</span>"
+      : "";
+    const features = def.features.map(feature => "<div class=\"help\">✓ " + escapeHtml(feature,160) + "</div>").join("");
+    const limits =
+      "<div class=\"help\"><strong>" + formatLimit(def.ticketsPerMonth, "tickets nuevos/mes") + "</strong></div>" +
+      "<div class=\"help\"><strong>" + formatLimit(def.aiRepliesPerMonth, "respuestas IA/mes") + "</strong></div>" +
+      "<div class=\"help\"><strong>" + formatLimit(def.knowledgeChars, "caracteres de Knowledge Base") + "</strong></div>";
+    const action = def.key === "free"
+      ? "<span class=\"badge muted\">Incluido</span>"
+      : def.key === "pro"
+        ? proButton
+        : lifetimeButton;
+
+    return "<div class=\"card\">" +
+      "<span class=\"pill\">" + escapeHtml(def.name.toUpperCase(),30) + "</span>" +
+      "<h2 style=\"margin-top:12px\">" + escapeHtml(def.name,40) + "</h2>" +
+      "<div class=\"kpi\">" + escapeHtml(def.price,20) + priceSuffix + "</div>" +
+      "<p class=\"muted\">" + escapeHtml(def.billing,80) + ".</p>" +
+      "<div style=\"margin-top:12px\">" + limits + features + "</div>" +
+      "<div class=\"actions\" style=\"margin-top:16px\">" + action + "</div>" +
+      "</div>";
+  }).join("");
 
   return res.send(htmlShell("Planes",
     "<div class=\"hero\">" +
       "<span class=\"pill\">SaaS · " + escapeHtml(guild.name,100) + "</span>" +
       "<h1>Planes AI Support.</h1>" +
-      "<p>Stripe Checkout gestiona el pago. El acceso se activa por servidor cuando Stripe confirma la compra.</p>" +
+      "<p>Cada servidor tiene su propio plan y su propio límite mensual de uso. Los límites se reinician al comenzar cada mes en horario de España.</p>" +
     "</div>" +
     "<div class=\"card\" style=\"margin-bottom:18px\"><div class=\"toolbar\">" +
       "<div><strong>Servidor</strong><div class=\"muted small\">" + escapeHtml(guild.name,100) + "</div></div>" +
       "<div class=\"actions\">" + currentPlanBlock + portalButton + "</div>" +
     "</div></div>" +
-    "<div class=\"grid\">" +
-      "<div class=\"card\"><span class=\"pill\">FREE</span><h2 style=\"margin-top:12px\">Starter</h2><div class=\"kpi\">$0</div><p class=\"muted\">Para probar el sistema en un servidor.</p><div class=\"help\">Tickets, IA, Knowledge Base y soporte básico.</div></div>" +
-      "<div class=\"card\"><span class=\"pill\">PRO</span><h2 style=\"margin-top:12px\">Pro</h2><div class=\"kpi\">$6<span style=\"font-size:15px;color:#a1a1aa\">/mes</span></div><p class=\"muted\">Suscripción mensual para un servidor.</p><div class=\"help\">Checkout alojado por Stripe y renovación automática mensual.</div><div class=\"actions\" style=\"margin-top:16px\">" + proButton + "</div></div>" +
-      "<div class=\"card\"><span class=\"pill\">LIFETIME</span><h2 style=\"margin-top:12px\">Lifetime</h2><div class=\"kpi\">$30</div><p class=\"muted\">Pago único para ese servidor.</p><div class=\"help\">Sin renovación mensual mientras el plan Lifetime permanezca activo.</div><div class=\"actions\" style=\"margin-top:16px\">" + lifetimeButton + "</div></div>" +
-    "</div>" +
+    "<div class=\"grid\">" + planCards + "</div>" +
+    "<div class=\"card\" style=\"margin-top:18px\"><div class=\"notice\"><strong>Uso justo:</strong> Lifetime no tiene renovación mensual, pero mantiene límites mensuales de uso para evitar abuso y mantener el servicio sostenible.</div></div>" +
     "<div class=\"card\" style=\"margin-top:18px\"><div class=\"toolbar\">" +
       "<div><strong>Facturación segura</strong><div class=\"muted small\">" +
         (stripe ? "Stripe está preparado para Checkout." : "Añade STRIPE_SECRET_KEY en Railway para activar los cobros.") +
@@ -629,12 +660,16 @@ app.get("/servers/:guildId", async (req, res) => {
     const discordGuild = client.guilds.cache.get(guild.id);
     if (!discordGuild) return res.redirect("/dashboard");
 
-    const [cfg, stats, recentTickets, plan] = await Promise.all([
+    const [cfg, stats, recentTickets, plan, usage] = await Promise.all([
       getGuildConfig(guild.id),
       getGuildDashboardStats(guild.id),
       getRecentGuildTickets(guild.id, 10),
-      getGuildPlan(guild.id)
+      getGuildPlan(guild.id),
+      getGuildUsage(guild.id)
     ]);
+
+    const effectivePlanKey = plan.status === "active" ? normalizePlan(plan.plan) : "free";
+    const planDefinition = getPlanDefinition(effectivePlanKey);
 
     const categories = discordGuild.channels.cache
       .filter(ch => ch.type === 4)
@@ -698,7 +733,7 @@ app.get("/servers/:guildId", async (req, res) => {
                 <h2>Resumen</h2>
                 <div class="actions">
                   <span class="pill">🟢 Bot conectado</span>
-                  <a class="btn alt small" href="/pricing">Ver planes</a>
+                  <a class="btn alt small" href="/pricing?guild=${encodeURIComponent(guild.id)}">Ver planes</a>
                 </div>
               </div>
             <div class="grid">
@@ -706,7 +741,8 @@ app.get("/servers/:guildId", async (req, res) => {
               <div class="card"><div class="kpi">${stats.openTickets}</div><div class="stat-label">Tickets abiertos</div></div>
               <div class="card"><div class="kpi">${stats.closedTickets}</div><div class="stat-label">Tickets cerrados</div></div>
               <div class="card"><div class="kpi">${stats.escalatedTickets}</div><div class="stat-label">Escalados a humano</div></div>
-              <div class="card"><div class="kpi">${stats.totalMessages}</div><div class="stat-label">Mensajes procesados</div></div>
+              <div class="card"><div class="kpi">${escapeHtml(String(usage.aiResponses),20)} / ${escapeHtml(String(planDefinition.aiRepliesPerMonth),20)}</div><div class="stat-label">Respuestas IA este mes</div></div>
+              <div class="card"><div class="kpi">${escapeHtml(String(usage.ticketsCreated),20)} / ${escapeHtml(String(planDefinition.ticketsPerMonth),20)}</div><div class="stat-label">Tickets nuevos este mes</div></div>
               <div class="card"><div class="kpi">${escapeHtml(String(plan.plan).toUpperCase(),20)}</div><div class="stat-label">Plan actual · ${escapeHtml(plan.status,30)}</div></div>
             </div>
           </section>
@@ -790,7 +826,7 @@ app.get("/servers/:guildId", async (req, res) => {
 
                 <label style="margin-top:18px">Base de conocimiento</label>
                 <textarea name="knowledge">${escapeHtml(cfg.knowledge,10000)}</textarea>
-                <div class="help">Introduce reglas, FAQ, precios, procedimientos y documentación que la IA puede utilizar.</div>
+                <div class="help">Límite del plan ${planDefinition.name}: ${formatLimit(planDefinition.knowledgeChars, "caracteres")}. Introduce reglas, FAQ, precios, procedimientos y documentación que la IA puede utilizar.</div>
 
                 <div class="toolbar" style="margin-top:16px">
                   <a class="btn alt" href="/dashboard">← Volver</a>
@@ -821,12 +857,30 @@ app.post("/api/servers/:guildId", async (req, res) => {
     }
 
     const body = req.body || {};
+    const planState = await getGuildPlan(guild.id);
+    const effectivePlanKey = planState.status === "active" ? normalizePlan(planState.plan) : "free";
+    const planDefinition = getPlanDefinition(effectivePlanKey);
+    const knowledge = cleanText(body.knowledge, 10000);
+
+    if (knowledge.length > planDefinition.knowledgeChars) {
+      return res.status(400).send(
+        htmlShell("Límite de Knowledge Base",
+          "<div class=\"card\"><h2>⚠️ Has superado el límite de tu plan</h2>" +
+          "<p class=\"muted\">El plan " + escapeHtml(planDefinition.name,40) + " permite hasta " +
+          formatLimit(planDefinition.knowledgeChars, "caracteres") + " en la Knowledge Base.</p>" +
+          "<p class=\"muted\">Tu contenido actual tiene " + knowledge.length.toLocaleString("es-ES") + " caracteres.</p>" +
+          "<a class=\"btn\" href=\"/pricing?guild=" + encodeURIComponent(guild.id) + "\">Ver planes</a></div>",
+          session.user
+        )
+      );
+    }
+
     await saveGuildConfig(guild.id, {
       founderId: cleanText(body.founderId,100).trim() || config.founderId,
       staffRoleId: cleanText(body.staffRoleId,100).trim(),
       ticketCategoryId: cleanText(body.ticketCategoryId,100).trim(),
       welcomeText: cleanText(body.welcomeText,1000).trim(),
-      knowledge: cleanText(body.knowledge,10000)
+      knowledge
     });
 
     res.redirect("/servers/" + encodeURIComponent(guild.id) + "?saved=1");
