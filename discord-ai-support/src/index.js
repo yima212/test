@@ -79,8 +79,9 @@ const STAFF_ROLE_KEYWORDS = [
   "admin", "administrador", "support", "soporte"
 ];
 
-function hasStaffRole(member) {
+function hasStaffRole(member, guildConfig = null) {
   if (!member) return false;
+  if (guildConfig?.staffRoleId && member.roles.cache.has(guildConfig.staffRoleId)) return true;
   if (member.permissions.has(PermissionFlagsBits.ManageChannels)) return true;
   return member.roles.cache.some(role => {
     const name = role.name.toLowerCase();
@@ -179,7 +180,7 @@ async function handleDirectRequest(message, session) {
   const wantsHuman = textLooksLikeHumanContactRequest(text);
 
   if (mentionedMember && wantsHuman) {
-    if (!hasStaffRole(mentionedMember)) {
+    if (!hasStaffRole(mentionedMember, guildConfig)) {
       await message.channel.send(
         "⚠️ " + mentionedMember.toString() + " no está identificado como miembro del staff/moderación."
       );
@@ -339,6 +340,7 @@ client.on("interactionCreate", async interaction => {
         new EmbedBuilder()
           .setTitle("🤖 Asistente de soporte")
           .setDescription(
+            guildConfig.welcomeText ||
             "Hola 👋 Cuéntame qué necesitas. Intentaré ayudarte.\n\n" +
             "Si no puedo resolverlo con seguridad, avisaré al equipo."
           )
