@@ -272,6 +272,33 @@ function htmlShell(title, body, user = null) {
 .side-layout{display:grid;grid-template-columns:225px minmax(0,1fr);gap:18px;align-items:start}.sidebar{position:sticky;top:84px;padding:9px}.sidebar a{display:flex;align-items:center;gap:9px;padding:10px 11px;border-radius:11px;color:#bfc2d1;font-size:12px;font-weight:800;margin-bottom:3px}.sidebar a:hover,.sidebar a.active{background:rgba(109,93,252,.10);color:#fff}.section{scroll-margin-top:96px}.section-title{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:11px}.section-title h2{font-size:21px;letter-spacing:-.03em}.section-title .muted{color:var(--muted);font-size:11px}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.field.full{grid-column:1/-1}label{display:block;font-weight:800;font-size:12px;margin:0 0 7px}input,textarea,select{width:100%;border:1px solid #2c2d39;background:#0c0c14;color:#fafaff;border-radius:12px;padding:11px 12px;outline:none;transition:.2s}input:focus,textarea:focus,select:focus{border-color:rgba(109,93,252,.72);box-shadow:0 0 0 3px rgba(109,93,252,.12)}textarea{min-height:165px;resize:vertical}.help{margin-top:6px;color:var(--muted2);font-size:11px;line-height:1.45}.toolbar{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap}.actions{display:flex;gap:8px;flex-wrap:wrap}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px;background:rgba(0,0,0,.10)}table{width:100%;border-collapse:collapse;min-width:640px}th,td{padding:11px 13px;border-bottom:1px solid rgba(255,255,255,.055);text-align:left;font-size:12px}th{color:#8e91a5;font-weight:800;background:rgba(255,255,255,.025)}tr:last-child td{border-bottom:0}.badge{display:inline-flex;padding:5px 8px;border-radius:999px;font-size:10px;font-weight:900;border:1px solid var(--line2)}.badge.success{color:#9bf4c4;background:rgba(57,217,138,.07);border-color:rgba(57,217,138,.17)}.badge.warning{color:#ffd38a;background:rgba(255,191,95,.07);border-color:rgba(255,191,95,.18)}.badge.muted{background:rgba(255,255,255,.04);color:#aaaec0}.notice{padding:13px 14px;border-radius:13px;background:rgba(109,93,252,.08);border:1px solid rgba(109,93,252,.18);color:#dbd8ff;font-size:12px;line-height:1.55}.notice.success{background:rgba(57,217,138,.07);border-color:rgba(57,217,138,.15);color:#bbf8d6}.empty{padding:42px 22px;text-align:center}.empty .feature-icon{margin:0 auto 12px}.empty h3{margin-bottom:6px}.legal{max-width:860px;margin:0 auto;padding:52px 0}.legal h1{font-size:48px;letter-spacing:-.05em;margin:8px 0 12px}.legal h2{font-size:20px;margin:30px 0 8px}.legal p,.legal li{color:#b8bbca;line-height:1.7;font-size:14px}.legal ul{padding-left:20px}.footer{padding:48px 0 8px;color:#707386;font-size:11px}.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding-top:18px}.footer-links{display:flex;gap:12px;flex-wrap:wrap}.footer-links a:hover{color:#fff}
 @media(max-width:980px){.hero-grid{grid-template-columns:1fr}.grid-4{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:repeat(2,1fr)}.stats-strip{grid-template-columns:repeat(2,1fr)}.side-layout{grid-template-columns:1fr}.sidebar{position:static;display:flex;overflow:auto;gap:6px;padding:0}.sidebar a{white-space:nowrap}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.dashboard-hero{align-items:start;flex-direction:column}}
 @media(max-width:680px){.wrap{padding:0 15px 20px}.site-nav{margin:0 -15px;padding:13px 15px}.nav-inner{align-items:flex-start}.nav-actions{justify-content:flex-end}.nav-actions .nav-link{display:none}.nav-actions .profile-chip{display:flex}.hero{padding:50px 0 30px}.hero h1{font-size:46px}.hero p{font-size:16px}.grid,.grid-4{grid-template-columns:1fr}.stats-strip{grid-template-columns:1fr 1fr}.dashboard-hero h1{font-size:36px}.card{padding:17px}.legal h1{font-size:38px}.footer-inner{align-items:flex-start;flex-direction:column}}
+
+.app-shell{display:grid;grid-template-columns:232px minmax(0,1fr);gap:18px;align-items:start}
+.app-sidebar{position:sticky;top:88px;background:rgba(14,14,24,.84);border:1px solid var(--line);border-radius:22px;padding:12px;box-shadow:0 18px 55px rgba(0,0,0,.22)}
+.app-sidebar .server-switch{display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid var(--line);margin-bottom:12px}
+.app-sidebar .server-switch .mini-icon{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:#202033;overflow:hidden;font-weight:900}
+.app-sidebar .server-switch .mini-icon img{width:100%;height:100%;object-fit:cover}
+.app-sidebar .server-switch .name{min-width:0;flex:1}.app-sidebar .server-switch strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.app-sidebar .server-switch span{display:block;color:var(--muted2);font-size:10px;margin-top:2px}
+.side-group{margin:12px 6px 7px;color:#6f7287;font-size:10px;font-weight:900;letter-spacing:.11em;text-transform:uppercase}
+.side-link{display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:12px;color:#bfc2d2;font-size:12px;font-weight:800;margin:3px 0}
+.side-link:hover,.side-link.active{background:linear-gradient(90deg,rgba(109,93,252,.18),rgba(109,93,252,.05));color:#fff;border:1px solid rgba(109,93,252,.14)}
+.side-link .icon{width:18px;text-align:center;color:#bdb7ff}
+.app-main{min-width:0}
+.page-top{display:flex;justify-content:space-between;align-items:end;gap:18px;margin:34px 0 18px}.page-top h1{margin:7px 0 5px;font-size:42px;letter-spacing:-.05em}.page-top p{margin:0;color:var(--muted);font-size:13px}
+.metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.metric-card{padding:18px;background:linear-gradient(180deg,rgba(21,21,34,.95),rgba(12,12,20,.94));border:1px solid var(--line);border-radius:18px}.metric-card .metric-top{display:flex;justify-content:space-between;gap:10px;align-items:center;color:var(--muted);font-size:11px;font-weight:800}.metric-card .metric-icon{width:31px;height:31px;border-radius:10px;display:grid;place-items:center;background:rgba(109,93,252,.12);border:1px solid rgba(109,93,252,.18)}.metric-card .metric-value{font-size:31px;font-weight:950;letter-spacing:-.05em;margin-top:12px}.metric-card .metric-sub{font-size:11px;color:var(--muted2);margin-top:3px}
+.progress{height:8px;background:#0d0d15;border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.06)}.progress>span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--brand),var(--cyan))}
+.two-col{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);gap:14px}.panel-card{background:linear-gradient(180deg,rgba(18,18,29,.93),rgba(11,11,18,.95));border:1px solid var(--line);border-radius:20px;padding:19px}.panel-card h3{margin:0 0 5px}.panel-card .sub{color:var(--muted);font-size:11px}
+.activity-bars{height:185px;display:flex;align-items:flex-end;gap:12px;padding:22px 8px 4px}.activity-bar{flex:1;min-width:18px;border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,#8e82ff,rgba(109,93,252,.24));border:1px solid rgba(142,130,255,.18);box-shadow:0 10px 28px rgba(109,93,252,.10)}.activity-axis{display:flex;justify-content:space-between;color:#676a7f;font-size:9px;padding:0 8px}
+.donut-wrap{display:flex;align-items:center;gap:18px}.donut{width:138px;height:138px;border-radius:50%;background:conic-gradient(var(--brand) 0 44%,#44d8ff 44% 72%,#ffbf5f 72% 86%,#4b4c5a 86% 100%);position:relative;flex:0 0 auto}.donut:after{content:"";position:absolute;inset:24px;border-radius:50%;background:#10101a;border:1px solid var(--line)}.legend{display:grid;gap:10px;flex:1}.legend-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11px;color:#bfc1cf}.legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:7px;background:#6d5dfc}.legend-row:nth-child(2) .legend-dot{background:#44d8ff}.legend-row:nth-child(3) .legend-dot{background:#ffbf5f}.legend-row:nth-child(4) .legend-dot{background:#4b4c5a}
+.tabbar{display:flex;gap:6px;overflow:auto;padding-bottom:3px;border-bottom:1px solid var(--line);margin-bottom:16px}.tab-btn{border:0;background:transparent;color:#8e91a5;padding:10px 13px;border-radius:10px;font-weight:900;font-size:11px;cursor:pointer;white-space:nowrap}.tab-btn:hover,.tab-btn.active{color:#fff;background:rgba(109,93,252,.12)}.tab-panel{display:none}.tab-panel.active{display:block}
+.form-section{background:linear-gradient(180deg,rgba(20,20,31,.94),rgba(12,12,20,.96));border:1px solid var(--line);border-radius:18px;padding:18px}.form-section h3{margin:0 0 5px}.form-section .sub{color:var(--muted);font-size:11px;margin-bottom:16px}.sticky-save{position:sticky;bottom:12px;display:flex;justify-content:flex-end;padding-top:12px}
+.code-box{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}.code-box input{text-align:center;letter-spacing:.08em;font-weight:900}
+.profile-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:15px;background:linear-gradient(90deg,rgba(109,93,252,.10),rgba(68,216,255,.05));border:1px solid rgba(109,93,252,.17);margin-bottom:14px}
+.admin-layout{display:grid;grid-template-columns:208px minmax(0,1fr);gap:18px;align-items:start}.admin-sidebar{position:sticky;top:88px;padding:10px;background:rgba(14,14,24,.84);border:1px solid var(--line);border-radius:20px}.admin-title{font-size:12px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;padding:10px 11px;color:#fff}
+.fade-in{animation:fadeIn .35s ease-out}@keyframes fadeIn{from{opacity:.5;transform:translateY(5px)}to{opacity:1;transform:none}}
+@media(max-width:980px){.app-shell,.admin-layout{grid-template-columns:1fr}.app-sidebar,.admin-sidebar{position:static;display:flex;overflow:auto;gap:6px}.side-group{display:none}.side-link{white-space:nowrap}.metric-grid{grid-template-columns:repeat(2,1fr)}.two-col{grid-template-columns:1fr}}
+@media(max-width:680px){.metric-grid{grid-template-columns:1fr}.page-top{margin-top:24px}.page-top h1{font-size:35px}.stats-strip{grid-template-columns:1fr 1fr}.code-box{grid-template-columns:1fr}.app-sidebar,.admin-sidebar{padding:7px}.profile-banner{align-items:flex-start;flex-direction:column}}
+
 </style>
 </head>
 <body><div class="wrap">
@@ -384,67 +411,83 @@ app.get("/", async (req, res) => {
   const session = await currentSession(req);
   if (session) return res.redirect("/dashboard");
 
-  const publicPlans = Object.values(PLAN_DEFINITIONS).map(def => {
-    const suffix = def.key === "pro" ? '<span>/mes</span>' : '';
-    const highlights = def.features.slice(0, 3).map(x => "<div>✓ " + escapeHtml(x, 150) + "</div>").join("");
-    return "<article class=\"card price-card " + (def.key === "pro" ? "featured" : "") + "\">" +
+  const plans = Object.values(PLAN_DEFINITIONS).map(def => {
+    const suffix = def.key === "pro" ? '<span>/mes</span>' : (def.key === "lifetime" ? '<span> único</span>' : '<span>/mes</span>');
+    const action = def.key === "free" ? "Empezar gratis" : (def.key === "pro" ? "Suscribirse" : "Comprar Lifetime");
+    return '<article class="card price-card ' + (def.key === "pro" ? "featured" : "") + '">' +
       (def.key === "pro" ? '<div class="price-badge">MÁS USADO</div>' : '') +
-      '<div class="price-name">' + escapeHtml(def.name, 40) + '</div>' +
-      '<div class="price-value">' + escapeHtml(def.price, 20) + suffix + '</div>' +
-      '<p>' + escapeHtml(def.billing, 60) + '</p>' +
-      '<div class="price-list">' + highlights + '</div>' +
-      '<a class="btn ' + (def.key === "pro" ? "" : "alt") + '" href="/auth/discord">' + (def.key === "free" ? "Empezar gratis" : "Continuar con Discord") + '</a>' +
-    '</article>';
+      '<div class="price-name">' + escapeHtml(def.name,40) + '</div>' +
+      '<div class="price-value">' + escapeHtml(def.price,20) + suffix + '</div>' +
+      '<p>' + escapeHtml(def.key === "free" ? "Ideal para empezar" : def.key === "pro" ? "Para servidores en crecimiento" : "Pago único, para siempre", 100) + '</p>' +
+      '<div class="price-list"><div>✓ ' + formatLimit(def.ticketsPerMonth,"tickets/mes") + '</div><div>✓ ' + formatLimit(def.aiRepliesPerMonth,"respuestas IA/mes") + '</div><div>✓ ' + formatLimit(def.knowledgeChars,"caracteres KB") + '</div></div>' +
+      '<a class="btn ' + (def.key === "pro" ? "" : "alt") + '" href="/auth/discord">' + action + '</a></article>';
   }).join("");
 
-  res.send(htmlShell("AI Support", `
-    <section class="hero"><div class="hero-grid">
-      <div>
-        <div class="eyebrow"><span class="eyebrow-dot"></span>Soporte inteligente para Discord</div>
-        <h1>Convierte cada ticket en una respuesta rápida.</h1>
-        <p>AI Support combina tickets privados, IA multilingüe, Knowledge Base, historial persistente y escalado a staff en un único panel.</p>
-        <div class="hero-actions"><a class="btn" href="/auth/discord">🚀 Empezar con Discord</a><a class="btn alt" href="#pricing">Ver planes</a></div>
-        <div class="hero-trust"><span>✓ <b>Multilingüe</b></span><span>✓ <b>Por servidor</b></span><span>✓ <b>Escalado humano</b></span><span>✓ <b>Historial persistente</b></span></div>
-      </div>
-      <div class="visual-wrap"><div class="glow"></div><div class="ticket-ui">
-        <div class="ticket-top"><div class="ticket-title"><div class="ticket-icon">🤖</div><div><strong>Ticket #1042</strong><span>soporte-general · IA activa</span></div></div><div class="ticket-status">● ONLINE</div></div>
-        <div class="chat">
-          <div class="chat-row"><div class="chat-avatar">U</div><div class="bubble">¿Cómo puedo recuperar un ticket cerrado?</div></div>
-          <div class="chat-row"><div class="chat-avatar">✦</div><div class="bubble ai"><strong>AI Support</strong><br>Te ayudo. Según las reglas de este servidor, un staff puede reabrirlo desde el panel.</div></div>
-          <div class="chat-row me"><div class="bubble me">¿Y si necesito hablar con un humano?</div><div class="chat-avatar">U</div></div>
-          <div class="chat-row"><div class="chat-avatar">✦</div><div class="bubble ai">Pulsa <b>Hablar con humano</b> y el equipo recibirá la escalada con el contexto del ticket.</div></div>
+  res.send(htmlShell("AI Support", \`
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <div class="eyebrow"><span class="eyebrow-dot"></span>Discord support · powered by AI</div>
+          <h1>Automatiza el soporte de tu servidor con <span style="background:linear-gradient(90deg,#8e82ff,#44d8ff);-webkit-background-clip:text;background-clip:text;color:transparent">Inteligencia Artificial</span>.</h1>
+          <p>Tickets privados, respuestas IA, Knowledge Base, soporte multilingüe y escalado a staff, todo en un solo lugar.</p>
+          <div class="hero-actions"><a class="btn" href="/auth/discord">🚀 Invitar al bot</a><a class="btn alt" href="#pricing">Ver precios</a></div>
+          <div class="hero-trust"><span>✓ <b>Tickets automáticos</b></span><span>✓ <b>Gemini AI</b></span><span>✓ <b>Multilingüe</b></span><span>✓ <b>Escalado a staff</b></span></div>
         </div>
-        <div class="ticket-footer"><div class="ticket-input">Escribe tu mensaje…</div><div class="ticket-send">➤</div></div>
-      </div></div>
-    </div></section>
+        <div class="visual-wrap">
+          <div class="glow"></div>
+          <div class="ticket-ui">
+            <div class="ticket-top"><div class="ticket-title"><div class="ticket-icon">◉</div><div><strong>AI Support</strong><span>tu servidor · IA activa</span></div></div><div class="ticket-status">● ONLINE</div></div>
+            <div style="display:grid;grid-template-columns:170px 1fr;gap:14px;padding:15px 6px">
+              <div class="card" style="padding:14px;background:rgba(255,255,255,.025)">
+                <div style="font-size:10px;color:#8e91a5;font-weight:900;text-transform:uppercase">Tickets automáticos</div>
+                <div style="font-size:28px;font-weight:950;margin-top:7px">24/7</div>
+                <div class="help">Sin intervención inicial</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:center">
+                <div style="position:relative;width:175px;height:175px;border-radius:50%;background:radial-gradient(circle at 48% 34%,#242437 0 34%,#11111c 35% 100%);border:1px solid rgba(142,130,255,.25);box-shadow:0 0 75px rgba(109,93,252,.28)">
+                  <div style="position:absolute;left:28px;right:28px;top:28px;height:72px;border-radius:36px;background:linear-gradient(160deg,#e9e9f2,#999bb1);box-shadow:inset 0 -7px 12px rgba(0,0,0,.18)"></div>
+                  <div style="position:absolute;top:52px;left:58px;width:16px;height:16px;border-radius:50%;background:#5fdcff;box-shadow:0 0 18px #5fdcff"></div>
+                  <div style="position:absolute;top:52px;right:58px;width:16px;height:16px;border-radius:50%;background:#8e82ff;box-shadow:0 0 18px #8e82ff"></div>
+                  <div style="position:absolute;left:47px;right:47px;bottom:29px;height:31px;border-radius:14px 14px 32px 32px;background:linear-gradient(180deg,#8e82ff,#5447e6)"></div>
+                  <div style="position:absolute;left:83px;top:8px;width:8px;height:22px;border-radius:8px;background:#9da0b4"></div>
+                  <div style="position:absolute;left:79px;top:2px;width:16px;height:16px;border-radius:50%;background:#44d8ff;box-shadow:0 0 17px #44d8ff"></div>
+                </div>
+              </div>
+            </div>
+            <div class="chat">
+              <div class="chat-row"><div class="chat-avatar">U</div><div class="bubble">¿Cómo configuro el bot?</div></div>
+              <div class="chat-row"><div class="chat-avatar">✦</div><div class="bubble ai"><strong>AI Support</strong><br>Usa /panel y completa la configuración del servidor.</div></div>
+              <div class="chat-row me"><div class="bubble me">Necesito hablar con un humano.</div><div class="chat-avatar">U</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <section class="section-block"><div class="stats-strip">
-      <div class="stat-block"><strong>24/7</strong><span>Asistencia automática</span></div><div class="stat-block"><strong>∞</strong><span>Contexto por ticket</span></div><div class="stat-block"><strong>🌍</strong><span>Idiomas detectados</span></div><div class="stat-block"><strong>⚡</strong><span>Escalado instantáneo</span></div>
+      <div class="stat-block"><strong>+2.000</strong><span>Objetivo de servidores</span></div>
+      <div class="stat-block"><strong>24/7</strong><span>Asistencia automática</span></div>
+      <div class="stat-block"><strong>🌍</strong><span>Multilingüe</span></div>
+      <div class="stat-block"><strong>⚡</strong><span>Escalado a staff</span></div>
     </div></section>
 
-    <section class="section-block" id="features"><div class="section-head"><div><span class="pill">Producto</span><h2>Todo lo necesario para soporte serio.</h2><p>Velocidad para la comunidad y control para el equipo.</p></div></div>
+    <section class="section-block" id="features"><div class="section-head"><div><span class="pill">Funciones</span><h2>Todo en un mismo panel.</h2><p>Una experiencia simple para administradores y miembros.</p></div></div>
       <div class="grid">
-        <article class="card feature-card"><div class="feature-icon">🎫</div><h3>Tickets privados</h3><p>Canales privados con cierre y opción de solicitar atención humana.</p></article>
-        <article class="card feature-card"><div class="feature-icon">✦</div><h3>IA con contexto</h3><p>Usa el historial del ticket y la Knowledge Base del servidor.</p></article>
-        <article class="card feature-card"><div class="feature-icon">🌍</div><h3>Multilingüe</h3><p>Detecta el idioma y lo mantiene durante toda la conversación.</p></article>
-        <article class="card feature-card"><div class="feature-icon">🛎️</div><h3>Escalado a staff</h3><p>Entrega el contexto al equipo cuando una persona debe intervenir.</p></article>
-        <article class="card feature-card"><div class="feature-icon">📚</div><h3>Knowledge Base</h3><p>Reglas, FAQ, precios y procedimientos específicos del servidor.</p></article>
-        <article class="card feature-card"><div class="feature-icon">📊</div><h3>Dashboard</h3><p>Uso, tickets, plan y configuración desde una interfaz web.</p></article>
+        <article class="card feature-card"><div class="feature-icon">🎫</div><h3>Tickets automáticos</h3><p>Canales privados con acciones de cierre y atención humana.</p></article>
+        <article class="card feature-card"><div class="feature-icon">✦</div><h3>IA con Gemini</h3><p>Respuestas contextualizadas por servidor y por ticket.</p></article>
+        <article class="card feature-card"><div class="feature-icon">🌍</div><h3>Multilingüe</h3><p>Detecta y mantiene el idioma del usuario.</p></article>
+        <article class="card feature-card"><div class="feature-icon">📚</div><h3>Knowledge Base</h3><p>Reglas, FAQ, procedimientos y documentación propia.</p></article>
+        <article class="card feature-card"><div class="feature-icon">🛎️</div><h3>Escalado a staff</h3><p>Entrega el contexto al equipo humano cuando hace falta.</p></article>
+        <article class="card feature-card"><div class="feature-icon">📊</div><h3>Dashboard</h3><p>Uso, tickets, plan y configuración por servidor.</p></article>
       </div>
     </section>
 
-    <section class="section-block"><div class="section-head"><div><span class="pill">Implementación</span><h2>Del servidor vacío al soporte activo.</h2><p>Un flujo de tres pasos para empezar.</p></div></div>
-      <div class="grid">
-        <article class="card step-card"><div class="step-number">01 · Conecta</div><h3>Añade tu bot</h3><p>Inicia sesión con Discord y añade AI Support al servidor que administras.</p></article>
-        <article class="card step-card"><div class="step-number">02 · Configura</div><h3>Define tus reglas</h3><p>Elige categoría, staff, mensaje de bienvenida y Knowledge Base.</p></article>
-        <article class="card step-card"><div class="step-number">03 · Automatiza</div><h3>Atiende y escala</h3><p>La IA resuelve lo conocido y deriva al equipo humano lo necesario.</p></article>
-      </div>
+    <section class="section-block" id="pricing"><div class="section-head"><div><span class="pill">Precios</span><h2>Planes simples.</h2><p>Todos los límites actuales se aplican por servidor.</p></div></div>
+      <div class="grid">\${plans}</div>
     </section>
 
-    <section class="section-block" id="pricing"><div class="section-head"><div><span class="pill">Precios</span><h2>Escala por servidor.</h2><p>Los límites actuales se aplican a cada servidor de Discord.</p></div><a class="btn alt btn-sm" href="/auth/discord">Abrir panel</a></div><div class="grid">${publicPlans}</div></section>
-
-    <section class="section-block"><div class="card" style="padding:28px"><div class="section-head" style="margin:0"><div><span class="pill">Listo para probar</span><h2>Tu siguiente ticket puede atenderse solo.</h2><p>Conecta Discord y termina la configuración desde el dashboard.</p></div><a class="btn" href="/auth/discord">🚀 Entrar con Discord</a></div></div></section>
-  `));
+    <section class="section-block"><div class="card" style="padding:28px"><div class="section-head" style="margin:0"><div><span class="pill">Ready</span><h2>Empieza en minutos.</h2><p>Conecta Discord, configura tu Knowledge Base y abre el primer ticket.</p></div><a class="btn" href="/auth/discord">Entrar con Discord</a></div></div></section>
+  \`));
 });
 
 
@@ -755,139 +798,71 @@ app.get("/admin", async (req, res) => {
   try {
     const session = await currentSession(req);
     if (!session) return res.redirect("/");
-    if (!isFounder(session)) return res.status(403).send(htmlShell("No autorizado",
-      '<div class="card"><h2>403 · No autorizado</h2><p class="muted">Este panel está reservado al administrador principal del SaaS.</p><a class="btn alt" href="/dashboard">Volver</a></div>',
-      session.user
-    ));
+    if (!isFounder(session)) return res.status(403).send(htmlShell("No autorizado", '<div class="card"><h2>403 · No autorizado</h2><p class="muted">Este panel está reservado al administrador principal del SaaS.</p><a class="btn alt" href="/dashboard">Volver</a></div>', session.user));
 
-    const [stats, codes, auditLogs] = await Promise.all([
-      getActivationCodeStats(),
-      listActivationCodes(100),
-      getRecentAuditLogs(50)
-    ]);
-
-    const generatedNotice = req.query.generated === "1"
-      ? '<div class="notice"><strong>✅ Lote generado.</strong> Los códigos se muestran solo en la pantalla de generación.</div>'
-      : "";
-    const disabledNotice = req.query.disabled === "1"
-      ? '<div class="notice"><strong>✅ Código desactivado.</strong></div>'
-      : req.query.disabled === "0"
-        ? '<div class="notice" style="border-color:#5b2532;background:#1a0f14;color:#fecdd3"><strong>⚠️ No se encontró un código disponible con ese valor.</strong></div>'
-        : "";
-
-    const rows = codes.map(code => {
-      const effectiveStatus = String(code.status || "").toLowerCase();
-      const statusClass =
-        effectiveStatus === "available" ? "success" :
-        effectiveStatus === "used" ? "muted" :
-        "warning";
-      const statusLabel =
-        effectiveStatus === "available" ? "Disponible" :
-        effectiveStatus === "used" ? "Usado" :
-        effectiveStatus === "expired" ? "Caducado" :
-        "Desactivado";
-      return `<tr>
-        <td><strong>${escapeHtml(code.code_hint,40)}••••</strong></td>
-        <td>${escapeHtml(getPlanDefinition(normalizePlan(code.plan)).name,40)}</td>
-        <td><span class="badge ${statusClass}">${escapeHtml(statusLabel,30)}</span></td>
-        <td>${escapeHtml(formatDate(code.created_at),80)}</td>
-        <td>${escapeHtml(formatDate(code.expires_at),80)}</td>
-        <td>${code.redeemed_guild_id ? escapeHtml(code.redeemed_guild_id,80) : "—"}</td>
-      </tr>`;
+    const [stats, codes, auditLogs] = await Promise.all([getActivationCodeStats(), listActivationCodes(100), getRecentAuditLogs(50)]);
+    const rows=codes.map(code=>{
+      const s=String(code.status||"").toLowerCase();
+      const cls=s==="available"?"success":s==="used"?"muted":"warning";
+      const label=s==="available"?"Disponible":s==="used"?"Usado":s==="expired"?"Caducado":"Desactivado";
+      return '<tr><td><strong>' + escapeHtml(code.code_hint,40) + '••••</strong></td><td>' + escapeHtml(getPlanDefinition(normalizePlan(code.plan)).name,40) + '</td><td><span class="badge ' + cls + '">' + label + '</span></td><td>' + escapeHtml(formatDate(code.created_at),80) + '</td><td>' + escapeHtml(formatDate(code.expires_at),80) + '</td><td>' + escapeHtml(code.redeemed_guild_id || "—",80) + '</td></tr>';
     }).join("");
+    const audits=auditLogs.map(log=>'<tr><td>'+escapeHtml(formatDate(log.created_at),80)+'</td><td><strong>'+escapeHtml(log.action,100)+'</strong></td><td>'+escapeHtml(log.actor_discord_user_id,80)+'</td><td>'+escapeHtml(log.guild_id||"—",80)+'</td></tr>').join("");
 
-    res.send(htmlShell("Admin · Códigos", `
-      <div class="hero">
-        <span class="pill">🔐 Administración segura</span>
-        <h1>Licencias y códigos.</h1>
-        <p>Generación server-side de códigos de un solo uso. Solo tu cuenta de Discord, configurada como FOUNDER_USER_ID, puede acceder a este panel.</p>
+    const notice = req.query.generated === "1" ? '<div class="notice success" style="margin-bottom:14px"><strong>✓ Lote generado.</strong> Los códigos completos se muestran solo una vez.</div>' :
+      req.query.disabled === "1" ? '<div class="notice success" style="margin-bottom:14px"><strong>✓ Código desactivado.</strong></div>' :
+      req.query.disabled === "0" ? '<div class="notice" style="margin-bottom:14px;border-color:rgba(255,113,138,.2);background:rgba(255,113,138,.06);color:#ffc3cb"><strong>⚠️ No se encontró un código disponible.</strong></div>' : "";
+
+    res.send(htmlShell("Admin · AI Support", \`
+      <div class="admin-layout fade-in">
+        <aside class="admin-sidebar">
+          <div class="admin-title">✦ Admin</div>
+          <a class="side-link active" href="/admin"><span class="icon">⌁</span>Códigos de activación</a>
+          <a class="side-link" href="#activity"><span class="icon">◌</span>Actividad</a>
+          <a class="side-link" href="#audit"><span class="icon">◫</span>Logs de auditoría</a>
+          <a class="side-link" href="/dashboard"><span class="icon">⌂</span>Dashboard</a>
+        </aside>
+        <main class="app-main">
+          <div class="page-top"><div><span class="pill">Administración segura</span><h1>Códigos de activación.</h1><p>Genera y gestiona licencias Pro y Lifetime del SaaS.</p></div><div class="dashboard-actions"><a class="btn alt btn-sm" href="/dashboard">← Dashboard</a></div></div>
+          \${notice}
+          <div class="metric-grid">
+            <div class="metric-card"><div class="metric-top"><span>Códigos totales</span><span class="metric-icon">▣</span></div><div class="metric-value">\${stats.total}</div></div>
+            <div class="metric-card"><div class="metric-top"><span>Disponibles</span><span class="metric-icon">✓</span></div><div class="metric-value">\${stats.available}</div></div>
+            <div class="metric-card"><div class="metric-top"><span>Usados / caducados</span><span class="metric-icon">◈</span></div><div class="metric-value">\${stats.used + stats.disabledOrExpired}</div></div>
+          </div>
+
+          <section class="section-block" style="padding-bottom:0">
+            <div class="two-col">
+              <div class="panel-card"><div class="section-head"><div><span class="pill">Generador</span><h2>Generar códigos.</h2><p>Crea un lote seguro en el servidor.</p></div></div>
+                <form method="post" action="/admin/activation-codes/generate">
+                  <div class="form-grid">
+                    <div class="field"><label>Plan</label><select name="plan"><option value="pro">Pro · $6/mes</option><option value="lifetime">Lifetime · $30</option></select></div>
+                    <div class="field"><label>Cantidad</label><select name="quantity"><option>1</option><option>10</option><option>50</option><option>100</option></select></div>
+                    <div class="field full"><label>Caducidad opcional</label><input type="datetime-local" name="expiresAt"><div class="help">Máximo 100 por lote.</div></div>
+                  </div>
+                  <button class="btn" style="margin-top:16px" type="submit">🪙 Generar códigos</button>
+                </form>
+              </div>
+              <div class="panel-card"><div class="section-head"><div><span class="pill">Estado</span><h2>Licencias.</h2><p>Resumen del inventario actual.</p></div></div>
+                <div class="grid" style="grid-template-columns:1fr 1fr"><div class="card"><div class="stat-label">Pro</div><div class="kpi" style="font-size:28px">✓</div><div class="help">Disponible bajo demanda</div></div><div class="card"><div class="stat-label">Lifetime</div><div class="kpi" style="font-size:28px">✓</div><div class="help">Pago único</div></div></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="section-block" id="activity"><div class="section-head"><div><span class="pill">Actividad</span><h2>Códigos generados.</h2><p>Los códigos completos no se vuelven a mostrar después de generarlos.</p></div></div><div class="panel-card">\${rows ? '<div class="table-wrap"><table><thead><tr><th>Código</th><th>Plan</th><th>Estado</th><th>Creado</th><th>Expira</th><th>Servidor</th></tr></thead><tbody>'+rows+'</tbody></table></div>' : '<div class="empty"><div class="feature-icon">⌁</div><h3>No hay códigos</h3><p>Genera tu primer lote.</p></div>'}</div></section>
+
+          <section class="section-block"><div class="section-head"><div><span class="pill">Seguridad</span><h2>Invalidar un código.</h2><p>Solo códigos disponibles.</p></div></div><div class="panel-card"><form method="post" action="/admin/activation-codes/disable"><div class="code-box"><input name="code" maxlength="32" autocomplete="off" placeholder="Pega aquí el código completo" required><button class="btn danger" type="submit">Desactivar</button></div></form><div class="help" style="margin-top:9px">Los códigos completos no se almacenan en texto plano.</div></div></section>
+
+          <section class="section-block" id="audit"><div class="section-head"><div><span class="pill">Auditoría</span><h2>Registro de seguridad.</h2><p>Últimas 50 acciones administrativas.</p></div></div><div class="panel-card">\${audits ? '<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Acción</th><th>Usuario</th><th>Servidor</th></tr></thead><tbody>'+audits+'</tbody></table></div>' : '<p class="muted">Sin actividad.</p>'}</div></section>
+        </main>
       </div>
-
-      ${generatedNotice}
-      ${disabledNotice}
-
-      <div class="grid">
-        <div class="card"><div class="kpi">${stats.total}</div><div class="stat-label">Códigos totales</div></div>
-        <div class="card"><div class="kpi">${stats.available}</div><div class="stat-label">Disponibles</div></div>
-        <div class="card"><div class="kpi">${stats.used}</div><div class="stat-label">Usados</div></div>
-        <div class="card"><div class="kpi">${stats.disabledOrExpired}</div><div class="stat-label">Desactivados/caducados</div></div>
-      </div>
-
-      <section class="section" style="margin-top:28px">
-        <div class="section-title"><h2>Generar lote</h2><span class="muted small">Máximo 100 por solicitud</span></div>
-        <div class="card">
-          <form method="post" action="/admin/activation-codes/generate">
-            <div class="form-grid">
-              <div class="field">
-                <label>Plan</label>
-                <select name="plan">
-                  <option value="pro">Pro · $6/mes</option>
-                  <option value="lifetime">Lifetime · $30</option>
-                </select>
-              </div>
-              <div class="field">
-                <label>Cantidad</label>
-                <select name="quantity">
-                  <option>1</option>
-                  <option>10</option>
-                  <option>50</option>
-                  <option>100</option>
-                </select>
-              </div>
-              <div class="field full">
-                <label>Caducidad opcional</label>
-                <input type="datetime-local" name="expiresAt">
-                <div class="help">La fecha se valida en el servidor. La caducidad del código no revoca un plan que ya haya sido activado.</div>
-              </div>
-            </div>
-            <div class="toolbar" style="margin-top:16px">
-              <a class="btn alt" href="/dashboard">← Volver</a>
-              <button class="btn" type="submit">🪙 Generar códigos</button>
-            </div>
-          </form>
-        </div>
-      </section>
-
-      <section class="section" style="margin-top:28px">
-        <div class="section-title"><h2>Invalidar código</h2><span class="muted small">Solo códigos disponibles</span></div>
-        <div class="card">
-          <form method="post" action="/admin/activation-codes/disable">
-            <div class="toolbar" style="align-items:stretch">
-              <input name="code" maxlength="32" autocomplete="off" placeholder="Pega aquí el código completo" required style="flex:1;min-width:240px">
-              <button class="btn danger" type="submit">Desactivar</button>
-            </div>
-          </form>
-          <div class="help" style="margin-top:10px">Los códigos completos no se almacenan en texto plano; después de salir de la pantalla de generación solo se conserva su hash y una referencia parcial.</div>
-        </div>
-      </section>
-
-      <section class="section" style="margin-top:28px">
-        <div class="section-title"><h2>Registro de seguridad</h2><span class="muted small">Últimas 50 acciones</span></div>
-        <div class="card">
-          ${auditLogs.length
-            ? '<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Acción</th><th>Usuario</th><th>Servidor</th></tr></thead><tbody>' +
-              auditLogs.map(log => '<tr><td>' + escapeHtml(formatDate(log.created_at),80) + '</td><td><strong>' + escapeHtml(log.action,100) + '</strong></td><td>' + escapeHtml(log.actor_discord_user_id,80) + '</td><td>' + escapeHtml(log.guild_id || "—",80) + '</td></tr>').join("") +
-              '</tbody></table></div>'
-            : '<p class="muted">Todavía no hay acciones registradas.</p>'}
-        </div>
-      </section>
-
-      <section class="section" style="margin-top:28px">
-        <div class="section-title"><h2>Actividad</h2><span class="muted small">Últimos 100</span></div>
-        <div class="card">
-          ${rows
-            ? '<div class="table-wrap"><table><thead><tr><th>Código</th><th>Plan</th><th>Estado</th><th>Creado</th><th>Expira</th><th>Servidor usado</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
-            : '<p class="muted">Todavía no has generado códigos.</p>'}
-        </div>
-      </section>
-    `, session.user));
+    \`, session.user));
   } catch (error) {
     console.error("Admin dashboard error:", error);
-    res.status(500).send(htmlShell("Error",
-      '<div class="card"><h2>⚠️ No se pudo cargar la administración</h2><p class="error">'+escapeHtml(error.message,1000)+'</p><a class="btn alt" href="/dashboard">Volver</a></div>'
-    ));
+    res.status(500).send(htmlShell("Error", '<div class="card"><h2>⚠️ Error en administración</h2><p class="error">' + escapeHtml(error.message,1000) + '</p><a class="btn alt" href="/dashboard">Volver</a></div>', (await currentSession(req))?.user || null));
   }
 });
+
 
 app.post("/admin/activation-codes/generate", rateLimit("admin-code-generate", 10, 60 * 60 * 1000), async (req, res) => {
   try {
@@ -899,54 +874,30 @@ app.post("/admin/activation-codes/generate", rateLimit("admin-code-generate", 10
     const quantity = Number(req.body?.quantity || 0);
     const expiresAt = cleanText(req.body?.expiresAt, 80).trim() || null;
 
-    if (!["pro", "lifetime"].includes(plan)) {
-      return res.status(400).send("Plan no válido.");
-    }
+    if (!["pro", "lifetime"].includes(plan)) return res.status(400).send("Plan no válido.");
 
-    const codes = await createActivationCodes({
-      plan,
-      quantity,
-      expiresAt,
-      createdByDiscordUserId: session.user.id
-    });
-
-    await recordAuditLog({
-      actorDiscordUserId: session.user.id,
-      action: "activation_codes_generated",
-      details: {
-        plan,
-        quantity: codes.length,
-        expiresAt
-      }
-    });
+    const codes = await createActivationCodes({ plan, quantity, expiresAt, createdByDiscordUserId: session.user.id });
+    await recordAuditLog({ actorDiscordUserId: session.user.id, action: "activation_codes_generated", details: { plan, quantity: codes.length, expiresAt } });
 
     const codeText = codes.join("\n");
     const downloadHref = "data:text/plain;charset=utf-8," + encodeURIComponent(codeText);
-
     res.setHeader("Cache-Control", "no-store, private");
-    res.send(htmlShell("Códigos generados", `
-      <div class="hero">
-        <span class="pill">✅ Lote creado</span>
-        <h1>${codes.length} códigos ${escapeHtml(getPlanDefinition(plan).name,40)}.</h1>
-        <p>Guárdalos ahora. Por seguridad, la aplicación no vuelve a mostrar los códigos completos después de esta pantalla.</p>
+
+    res.send(htmlShell("Códigos generados", \`
+      <div class="page-top"><div><span class="pill">✓ Lote creado</span><h1>Códigos listos.</h1><p>\${codes.length} licencia(s) \${escapeHtml(getPlanDefinition(plan).name,40)} generadas. Esta es la única pantalla donde se muestran completas.</p></div><div class="dashboard-actions"><a class="btn alt btn-sm" href="/admin">← Admin</a></div></div>
+      <div class="panel-card">
+        <label>Códigos completos</label>
+        <textarea id="generated-codes" readonly style="min-height:330px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em">\${escapeHtml(codeText,10000)}</textarea>
+        <div class="actions" style="margin-top:14px"><button class="btn" type="button" onclick="navigator.clipboard.writeText(document.getElementById('generated-codes').value)">📋 Copiar todos</button><a class="btn alt" href="\${escapeHtml(downloadHref,20000)}" download="activation-codes-\${escapeHtml(plan,20)}.txt">⬇️ Descargar TXT</a></div>
+        <div class="notice" style="margin-top:14px">Guárdalos ahora. Por seguridad, no volverán a aparecer completos en el panel de administración.</div>
       </div>
-      <div class="card">
-        <textarea id="generated-codes" readonly style="min-height:340px">${escapeHtml(codeText,10000)}</textarea>
-        <div class="actions" style="margin-top:14px">
-          <button class="btn" type="button" onclick="navigator.clipboard.writeText(document.getElementById('generated-codes').value)">📋 Copiar todos</button>
-          <a class="btn alt" href="${escapeHtml(downloadHref,20000)}" download="activation-codes-${escapeHtml(plan,20)}.txt">⬇️ Descargar TXT</a>
-          <a class="btn alt" href="/admin?generated=1">← Administración</a>
-        </div>
-      </div>
-    `, session.user));
+    \`, session.user));
   } catch (error) {
     console.error("Activation code generation error:", error);
-    res.status(400).send(htmlShell("Error",
-      '<div class="card"><h2>⚠️ No se pudieron generar los códigos</h2><p class="error">'+escapeHtml(error.message,1000)+'</p><a class="btn alt" href="/admin">Volver</a></div>',
-      (await currentSession(req))?.user || null
-    ));
+    res.status(400).send(htmlShell("Error", '<div class="card"><h2>⚠️ No se pudieron generar los códigos</h2><p class="error">' + escapeHtml(error.message,1000) + '</p><a class="btn alt" href="/admin">Volver</a></div>', (await currentSession(req))?.user || null));
   }
 });
+
 
 app.post("/admin/activation-codes/disable", rateLimit("admin-code-disable", 30, 60 * 60 * 1000), async (req, res) => {
   try {
@@ -1019,24 +970,110 @@ app.get("/dashboard", async (req, res) => {
   const session = await currentSession(req);
   if (!session) return res.redirect("/");
 
-  const total = session.guilds.length;
-  const connected = session.guilds.filter(g => client.guilds.cache.has(g.id)).length;
-  const cards = session.guilds.map(guild => {
-    const botIn = Boolean(client.guilds.cache.get(guild.id));
-    const icon = discordIconUrl(guild);
-    return `<article class="card"><div class="server-card">
-      <div class="server-icon">${icon ? '<img src="' + escapeHtml(icon,300) + '" alt="">' : '◎'}</div>
-      <div class="server-meta"><div class="server-name">${escapeHtml(guild.name,100)}</div><div class="status"><span class="status-dot ${botIn ? "online" : "offline"}"></span>${botIn ? "Bot conectado" : "Bot no instalado"}</div></div>
-      <a class="btn btn-sm ${botIn ? "" : "alt"}" href="${botIn ? "/servers/" + encodeURIComponent(guild.id) : "/servers/" + encodeURIComponent(guild.id) + "/install"}">${botIn ? "Abrir panel" : "Añadir bot"}</a>
-    </div></article>`;
+  const connectedGuild = session.guilds.find(g => client.guilds.cache.has(g.id)) || session.guilds[0] || null;
+  let stats = { totalTickets:0, openTickets:0, closedTickets:0, escalatedTickets:0, totalMessages:0 };
+  let usage = { ticketsCreated:0, aiResponses:0 };
+  let plan = { plan:"free", status:"active" };
+  let definition = getPlanDefinition("free");
+
+  if (connectedGuild) {
+    try {
+      [stats, usage, plan] = await Promise.all([
+        getGuildDashboardStats(connectedGuild.id),
+        getGuildUsage(connectedGuild.id),
+        getGuildPlan(connectedGuild.id)
+      ]);
+      definition = getPlanDefinition(plan.status === "active" ? normalizePlan(plan.plan) : "free");
+    } catch (error) {
+      console.warn("[DASHBOARD] No se pudieron cargar métricas:", error.message);
+    }
+  }
+
+  const ticketPct = Math.min(100, Math.round((usage.ticketsCreated / Math.max(1, definition.ticketsPerMonth)) * 100));
+  const aiPct = Math.min(100, Math.round((usage.aiResponses / Math.max(1, definition.aiRepliesPerMonth)) * 100));
+  const closeBase = Math.max(1, stats.totalTickets);
+  const openPct = Math.round(stats.openTickets / closeBase * 100);
+  const closedPct = Math.round(stats.closedTickets / closeBase * 100);
+  const escalatedPct = Math.round(stats.escalatedTickets / closeBase * 100);
+  const serverIcon = connectedGuild ? discordIconUrl(connectedGuild) : "";
+
+  const serverOptions = session.guilds.map(g => '<option value="' + escapeHtml(g.id,80) + '"' + (connectedGuild && g.id === connectedGuild.id ? ' selected' : '') + '>' + escapeHtml(g.name,100) + '</option>').join("");
+  const serverCards = session.guilds.map(g => {
+    const inBot = client.guilds.cache.has(g.id);
+    const icon = discordIconUrl(g);
+    return '<a class="card" href="' + (inBot ? '/servers/' + encodeURIComponent(g.id) : '/servers/' + encodeURIComponent(g.id) + '/install') + '">' +
+      '<div class="server-card"><div class="server-icon">' + (icon ? '<img src="' + escapeHtml(icon,300) + '" alt="">' : '◎') + '</div>' +
+      '<div class="server-meta"><div class="server-name">' + escapeHtml(g.name,100) + '</div><div class="status"><span class="status-dot ' + (inBot ? 'online' : 'offline') + '"></span>' + (inBot ? 'Bot conectado' : 'Pendiente de instalar') + '</div></div>' +
+      '<span class="btn btn-sm ' + (inBot ? '' : 'alt') + '">' + (inBot ? 'Abrir' : 'Añadir') + '</span></div></a>';
   }).join("");
 
-  res.send(htmlShell("Dashboard", `
-    <div class="dashboard-hero"><div><span class="pill">Panel de control</span><h1>Hola, ${escapeHtml(session.user.username,80)} 👋</h1><p>Gestiona tus servidores, supervisa el uso y ajusta el comportamiento del soporte desde un solo lugar.</p></div><div class="dashboard-actions"><a class="btn" href="/onboarding">🚀 Primeros pasos</a><a class="btn alt" href="/pricing">💳 Planes</a></div></div>
-    <div class="grid-4"><div class="card"><div class="kpi">${total}</div><div class="stat-label">Servidores gestionables</div></div><div class="card"><div class="kpi">${connected}</div><div class="stat-label">Con bot conectado</div></div><div class="card"><div class="kpi">${Math.max(0,total-connected)}</div><div class="stat-label">Pendientes de instalar</div></div><div class="card"><div class="kpi">24/7</div><div class="stat-label">Automatización activa</div></div></div>
-    <section class="section-block" style="padding-bottom:0"><div class="section-head"><div><span class="pill">Mis servidores</span><h2>Selecciona dónde trabajar.</h2><p>Cada servidor mantiene su configuración, uso y Knowledge Base.</p></div></div><div class="grid">${cards || '<div class="card empty" style="grid-column:1/-1"><div class="feature-icon">☁️</div><h3>No hay servidores disponibles</h3><p>Conecta una cuenta de Discord que administre al menos un servidor.</p></div>'}</div></section>
-    <section class="section-block"><div class="card"><div class="toolbar"><div><span class="pill">Arquitectura por servidor</span><h3 style="margin-top:10px">Un panel. Un contexto.</h3><p>Los tickets, la IA y las reglas permanecen separados por servidor.</p></div><a class="btn alt" href="/onboarding">Ver guía</a></div></div></section>
-  `, session.user));
+  res.send(htmlShell("Dashboard", \`
+    <div class="app-shell fade-in">
+      <aside class="app-sidebar">
+        <div class="server-switch">
+          <div class="mini-icon">\${serverIcon ? '<img src="' + escapeHtml(serverIcon,300) + '" alt="">' : '◎'}</div>
+          <div class="name"><strong>\${escapeHtml(connectedGuild?.name || "Mi servidor",100)}</strong><span>\${connectedGuild ? "Servidor seleccionado" : "Sin servidor"}</span></div>
+          <span>⌄</span>
+        </div>
+        <div class="side-group">Workspace</div>
+        <a class="side-link active" href="/dashboard"><span class="icon">⌂</span>Inicio</a>
+        <a class="side-link" href="#servers"><span class="icon">◈</span>Servidores</a>
+        <a class="side-link" href="\${connectedGuild ? '/servers/' + encodeURIComponent(connectedGuild.id) + '#tickets' : '#servers'}"><span class="icon">▣</span>Tickets</a>
+        <a class="side-link" href="\${connectedGuild ? '/servers/' + encodeURIComponent(connectedGuild.id) + '#ai' : '#servers'}"><span class="icon">✦</span>IA</a>
+        <a class="side-link" href="\${connectedGuild ? '/servers/' + encodeURIComponent(connectedGuild.id) + '#knowledge' : '#servers'}"><span class="icon">▤</span>Knowledge Base</a>
+        <a class="side-link" href="\${connectedGuild ? '/servers/' + encodeURIComponent(connectedGuild.id) + '#staff' : '#servers'}"><span class="icon">♙</span>Configuración</a>
+        <a class="side-link" href="\${connectedGuild ? '/pricing?guild=' + encodeURIComponent(connectedGuild.id) : '/pricing'}"><span class="icon">◈</span>Facturación</a>
+        <a class="side-link" href="\${connectedGuild ? '/servers/' + encodeURIComponent(connectedGuild.id) + '#activation' : '#servers'}"><span class="icon">⌁</span>Código de activación</a>
+      </aside>
+
+      <main class="app-main">
+        <div class="page-top">
+          <div><span class="pill">Dashboard principal</span><h1>Hola, \${escapeHtml(session.user.username,80)} 👋</h1><p>Gestiona tu bot y tu soporte desde aquí.</p></div>
+          <div class="dashboard-actions"><a class="btn btn-sm" href="/onboarding">🚀 Primeros pasos</a><a class="btn alt btn-sm" href="/pricing">Ver planes</a></div>
+        </div>
+
+        \${connectedGuild ? '<div class="profile-banner"><div><strong>' + escapeHtml(connectedGuild.name,100) + '</strong><div class="help">Métricas del servidor seleccionado · datos actuales</div></div><div class="badge success">● BOT ONLINE</div></div>' : ''}
+
+        <div class="metric-grid">
+          <div class="metric-card"><div class="metric-top"><span>Tickets este mes</span><span class="metric-icon">▣</span></div><div class="metric-value">\${usage.ticketsCreated} <span style="font-size:13px;color:var(--muted)">/ \${definition.ticketsPerMonth}</span></div><div class="progress" style="margin-top:10px"><span style="width:\${ticketPct}%"></span></div><div class="metric-sub">\${ticketPct}% del límite actual</div></div>
+          <div class="metric-card"><div class="metric-top"><span>Respuestas IA</span><span class="metric-icon">✦</span></div><div class="metric-value">\${usage.aiResponses} <span style="font-size:13px;color:var(--muted)">/ \${definition.aiRepliesPerMonth}</span></div><div class="progress" style="margin-top:10px"><span style="width:\${aiPct}%"></span></div><div class="metric-sub">\${aiPct}% del límite actual</div></div>
+          <div class="metric-card"><div class="metric-top"><span>Plan actual</span><span class="metric-icon">♛</span></div><div class="metric-value" style="font-size:25px">\${escapeHtml(definition.name,40)}</div><div class="metric-sub">\${escapeHtml(definition.price + " · " + definition.billing,60)}</div><a class="btn btn-sm" style="margin-top:13px" href="\${connectedGuild ? '/pricing?guild=' + encodeURIComponent(connectedGuild.id) : '/pricing'}">Gestionar plan</a></div>
+        </div>
+
+        <section class="section-block" style="padding-bottom:0">
+          <div class="two-col">
+            <div class="panel-card">
+              <div class="section-head" style="margin-bottom:3px"><div><span class="pill">Actividad</span><h2>Actividad de tickets</h2><p>Visualización del estado actual del soporte.</p></div><span class="pill">Último ciclo</span></div>
+              <div class="activity-bars">
+                <div class="activity-bar" style="height:\${Math.max(18, Math.min(86, 20 + (stats.openTickets * 7)))}%"></div>
+                <div class="activity-bar" style="height:\${Math.max(25, Math.min(91, 18 + (stats.closedTickets * 5)))}%"></div>
+                <div class="activity-bar" style="height:\${Math.max(14, Math.min(80, 16 + (stats.totalTickets * 4)))}%"></div>
+                <div class="activity-bar" style="height:\${Math.max(24, Math.min(95, 24 + (stats.totalMessages % 60)))}%"></div>
+                <div class="activity-bar" style="height:\${Math.max(20, Math.min(88, 20 + (stats.escalatedTickets * 9)))}%"></div>
+                <div class="activity-bar" style="height:\${Math.max(18, Math.min(92, 26 + (usage.ticketsCreated * 3)))}%"></div>
+                <div class="activity-bar" style="height:\${Math.max(22, Math.min(96, 28 + (usage.aiResponses % 70)))}%"></div>
+              </div>
+              <div class="activity-axis"><span>Inicio</span><span>Actual</span></div>
+            </div>
+            <div class="panel-card">
+              <div class="section-head" style="margin-bottom:12px"><div><span class="pill">Distribución</span><h2>Tipos / estado</h2></div></div>
+              <div class="donut-wrap">
+                <div class="donut"></div>
+                <div class="legend">
+                  <div class="legend-row"><span><span class="legend-dot"></span>Abiertos</span><b>\${openPct}%</b></div>
+                  <div class="legend-row"><span><span class="legend-dot"></span>Cerrados</span><b>\${closedPct}%</b></div>
+                  <div class="legend-row"><span><span class="legend-dot"></span>Escalados</span><b>\${escalatedPct}%</b></div>
+                  <div class="legend-row"><span><span class="legend-dot"></span>Total</span><b>\${stats.totalTickets}</b></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section-block" id="servers"><div class="section-head"><div><span class="pill">Servidores</span><h2>Tus servidores.</h2><p>Selecciona dónde quieres trabajar.</p></div></div><div class="grid">\${serverCards || '<div class="card empty" style="grid-column:1/-1"><div class="feature-icon">☁️</div><h3>No hay servidores gestionables</h3><p>Autoriza una cuenta de Discord con permisos suficientes.</p></div>'}</div></section>
+      </main>
+    </div>
+  \`, session.user));
 });
 
 
@@ -1044,12 +1081,10 @@ app.get("/servers/:guildId", async (req, res) => {
   try {
     const session = await currentSession(req);
     if (!session) return res.redirect("/");
-
     const access = await requireManagedGuild(req, session);
     if (!access) return res.status(403).send("No autorizado.");
 
     const { guild, discordGuild } = access;
-
     const [cfg, stats, recentTickets, plan, usage] = await Promise.all([
       getGuildConfig(guild.id),
       getGuildDashboardStats(guild.id),
@@ -1058,215 +1093,146 @@ app.get("/servers/:guildId", async (req, res) => {
       getGuildUsage(guild.id)
     ]);
 
-    const effectivePlanKey = plan.status === "active" ? normalizePlan(plan.plan) : "free";
-    const planDefinition = getPlanDefinition(effectivePlanKey);
+    const planKey = plan.status === "active" ? normalizePlan(plan.plan) : "free";
+    const definition = getPlanDefinition(planKey);
+    const icon = discordIconUrl(guild);
+    const ticketPct = Math.min(100, Math.round((usage.ticketsCreated / Math.max(1, definition.ticketsPerMonth)) * 100));
+    const aiPct = Math.min(100, Math.round((usage.aiResponses / Math.max(1, definition.aiRepliesPerMonth)) * 100));
+    const categories = discordGuild.channels.cache.filter(ch => ch.type === 4).sort((a,b)=>a.position-b.position)
+      .map(ch => '<option value="' + escapeHtml(ch.id,80) + '"' + (cfg.ticketCategoryId === ch.id ? ' selected' : '') + '>' + escapeHtml(ch.name,100) + '</option>').join("");
+    const roles = Array.from(discordGuild.roles.cache.filter(r => r.id !== discordGuild.id && !r.managed).values()).sort((a,b)=>b.position-a.position).slice(0,100)
+      .map(role => '<option value="' + escapeHtml(role.id,80) + '"' + (cfg.staffRoleId === role.id ? ' selected' : '') + '>' + escapeHtml(role.name,100) + '</option>').join("");
 
-    const categories = discordGuild.channels.cache
-      .filter(ch => ch.type === 4)
-      .sort((a,b) => a.position - b.position)
-      .map(ch => '<option value="'+escapeHtml(ch.id,80)+'" '+(cfg.ticketCategoryId === ch.id ? "selected" : "")+'>'+escapeHtml(ch.name,100)+'</option>')
-      .join("");
+    const activationState = cleanText(req.query.activation,30).trim().toLowerCase();
+    const activationPlan = normalizePlan(cleanText(req.query.plan,30).trim());
+    const savedNotice = req.query.saved === "1" ? '<div class="notice success" style="margin-bottom:14px"><strong>✓ Cambios guardados.</strong> La configuración se ha actualizado.</div>' : "";
+    const activationNotice = activationState === "success"
+      ? '<div class="notice success"><strong>✓ Código activado.</strong> El servidor ahora tiene el plan ' + escapeHtml(getPlanDefinition(activationPlan).name,40) + '.</div>'
+      : activationState
+        ? '<div class="notice" style="border-color:rgba(255,113,138,.25);background:rgba(255,113,138,.06);color:#ffc3cb"><strong>⚠️ No se activó.</strong> ' + escapeHtml(activationReasonMessage(activationState),300) + '</div>'
+        : "";
 
-    const roles = Array.from(
-      discordGuild.roles.cache
-        .filter(role => role.id !== discordGuild.id && !role.managed)
-        .values()
-    )
-      .sort((a,b) => b.position - a.position)
-      .slice(0, 100)
-      .map(role => '<option value="'+escapeHtml(role.id,80)+'" '+(cfg.staffRoleId === role.id ? "selected" : "")+'>'+escapeHtml(role.name,100)+'</option>')
-      .join("");
-
-    const rows = recentTickets.map(ticket => {
-      const channel = discordGuild.channels.cache.get(ticket.channel_id);
-      const status = ticket.status === "open"
-        ? '<span class="badge success">Abierto</span>'
-        : '<span class="badge muted">Cerrado</span>';
-      const escalated = ticket.escalated
-        ? '<span class="badge warning">Escalado</span>'
-        : '<span class="badge muted">Normal</span>';
-      const link = channel
-        ? '<a class="btn ghost small" href="'+escapeHtml(channel.url,400)+'" target="_blank" rel="noopener">Discord</a>'
-        : '<span class="muted">No disponible</span>';
-      return `<tr>
-        <td><strong>${escapeHtml(channel?.name || ticket.channel_id,100)}</strong></td>
-        <td>${escapeHtml(ticket.owner_id,80)}</td>
-        <td>${status}</td>
-        <td>${escalated}</td>
-        <td>${escapeHtml(formatDate(ticket.created_at),80)}</td>
-        <td>${link}</td>
-      </tr>`;
+    const rows = recentTickets.map(t => {
+      const channel = discordGuild.channels.cache.get(t.channel_id);
+      return '<tr><td><strong>' + escapeHtml(channel?.name || t.channel_id,100) + '</strong></td><td>' + escapeHtml(t.owner_id,80) + '</td><td>' +
+        (t.status === "open" ? '<span class="badge success">Abierto</span>' : '<span class="badge muted">Cerrado</span>') +
+        '</td><td>' + (t.escalated ? '<span class="badge warning">Escalado</span>' : '<span class="badge muted">Normal</span>') +
+        '</td><td>' + escapeHtml(formatDate(t.created_at),80) + '</td><td>' +
+        (channel ? '<a class="btn ghost btn-sm" href="' + escapeHtml(channel.url,400) + '" target="_blank" rel="noopener">Discord</a>' : '—') + '</td></tr>';
     }).join("");
 
-    const icon = discordIconUrl(guild);
-
-    const activationState = cleanText(req.query.activation, 30).trim().toLowerCase();
-    const activationPlan = normalizePlan(cleanText(req.query.plan, 30).trim());
-    const savedNotice = req.query.saved === "1" ? '<div class="notice success"><strong>✓ Cambios guardados.</strong> La configuración del servidor se ha actualizado.</div>' : "";
-
-    const activationNotice = activationState === "success"
-      ? '<div class="notice"><strong>✅ Código activado.</strong> El servidor ahora tiene el plan ' + escapeHtml(getPlanDefinition(activationPlan).name, 40) + '.</div>'
-      : activationState
-        ? '<div class="notice" style="border-color:#5b2532;background:#1a0f14;color:#fecdd3"><strong>⚠️ No se activó el código.</strong> ' + escapeHtml(activationReasonMessage(activationState), 300) + '</div>'
-        : '';
-
-
-    res.send(htmlShell("Panel · " + guild.name, `
-      <div class="hero">
-        <span class="pill">${icon ? '<img src="'+escapeHtml(icon,300)+'" style="width:20px;height:20px;border-radius:7px;margin-right:7px;vertical-align:-5px" alt="">' : ''}${escapeHtml(guild.name,100)}</span>
-        <h1>Panel del servidor</h1>
-        <p>Configura el comportamiento del soporte y consulta el estado de tus tickets.</p>
-      </div>
-
-      ${savedNotice}
-
-      <div class="side-layout">
-        <aside class="sidebar card">
-          <a class="active" href="#overview">▦ Resumen</a>
-          <a href="#tickets">▣ Tickets</a>
-          <a href="#ai">✦ IA</a>
-          <a href="#staff">♙ Staff</a>
-          <a href="#knowledge">▤ Knowledge Base</a>
-          <a href="#billing">◈ Plan</a>
-          <a href="#activation">⌁ Activación</a>
+    res.send(htmlShell("Servidor · " + guild.name, \`
+      <div class="app-shell fade-in">
+        <aside class="app-sidebar">
+          <div class="server-switch"><div class="mini-icon">\${icon ? '<img src="' + escapeHtml(icon,300) + '" alt="">' : '◎'}</div><div class="name"><strong>\${escapeHtml(guild.name,100)}</strong><span>Servidor actual</span></div><span>⌄</span></div>
+          <div class="side-group">Workspace</div>
+          <a class="side-link" href="/dashboard"><span class="icon">⌂</span>Inicio</a>
+          <a class="side-link" href="#overview"><span class="icon">◈</span>Resumen</a>
+          <a class="side-link active" href="#tickets"><span class="icon">▣</span>Tickets</a>
+          <a class="side-link" href="#ai"><span class="icon">✦</span>IA</a>
+          <a class="side-link" href="#knowledge"><span class="icon">▤</span>Knowledge Base</a>
+          <a class="side-link" href="#staff"><span class="icon">♙</span>Configuración</a>
+          <a class="side-link" href="#billing"><span class="icon">◈</span>Facturación</a>
+          <a class="side-link" href="#activation"><span class="icon">⌁</span>Código de activación</a>
         </aside>
 
-        <main>
-          <section id="overview" class="section">
-            <div class="section-title">
-                <h2>Resumen</h2>
-                <div class="actions">
-                  <span class="pill">🟢 Bot conectado</span>
-                  <a class="btn alt small" href="/pricing?guild=${encodeURIComponent(guild.id)}">Ver planes</a><a class="btn ghost small" href="/onboarding">Guía</a>
-                </div>
-              </div>
-            <div class="grid">
-              <div class="card"><div class="kpi">${stats.totalTickets}</div><div class="stat-label">Tickets totales</div></div>
-              <div class="card"><div class="kpi">${stats.openTickets}</div><div class="stat-label">Tickets abiertos</div></div>
-              <div class="card"><div class="kpi">${stats.closedTickets}</div><div class="stat-label">Tickets cerrados</div></div>
-              <div class="card"><div class="kpi">${stats.escalatedTickets}</div><div class="stat-label">Escalados a humano</div></div>
-              <div class="card"><div class="kpi">${escapeHtml(String(usage.aiResponses),20)} / ${escapeHtml(String(planDefinition.aiRepliesPerMonth),20)}</div><div class="stat-label">Respuestas IA este mes</div></div>
-              <div class="card"><div class="kpi">${escapeHtml(String(usage.ticketsCreated),20)} / ${escapeHtml(String(planDefinition.ticketsPerMonth),20)}</div><div class="stat-label">Tickets nuevos este mes</div></div>
-              <div class="card"><div class="kpi">${escapeHtml(String(plan.plan).toUpperCase(),20)}</div><div class="stat-label">Plan actual · ${escapeHtml(plan.status,30)}</div></div>
+        <main class="app-main">
+          <div class="page-top"><div><span class="pill">\${icon ? '<img src="' + escapeHtml(icon,200) + '" style="width:18px;height:18px;border-radius:6px;vertical-align:-4px;margin-right:6px" alt="">' : ''}\${escapeHtml(guild.name,100)}</span><h1>Configuración.</h1><p>Personaliza el bot para este servidor y controla el soporte.</p></div><div class="dashboard-actions"><a class="btn alt btn-sm" href="/dashboard">← Dashboard</a><a class="btn btn-sm" href="/pricing?guild=\${encodeURIComponent(guild.id)}">💳 Plan</a></div></div>
+          \${savedNotice}
+
+          <section id="overview" class="section" style="scroll-margin-top:100px">
+            <div class="metric-grid">
+              <div class="metric-card"><div class="metric-top"><span>Tickets totales</span><span class="metric-icon">▣</span></div><div class="metric-value">\${stats.totalTickets}</div><div class="metric-sub">\${stats.openTickets} abiertos · \${stats.closedTickets} cerrados</div></div>
+              <div class="metric-card"><div class="metric-top"><span>Respuestas IA</span><span class="metric-icon">✦</span></div><div class="metric-value">\${usage.aiResponses} <span style="font-size:12px;color:var(--muted)">/ \${definition.aiRepliesPerMonth}</span></div><div class="progress" style="margin-top:9px"><span style="width:\${aiPct}%"></span></div></div>
+              <div class="metric-card"><div class="metric-top"><span>Plan actual</span><span class="metric-icon">♛</span></div><div class="metric-value" style="font-size:25px">\${escapeHtml(definition.name,40)}</div><div class="metric-sub">\${escapeHtml(definition.price + " · " + definition.billing,60)}</div></div>
             </div>
           </section>
 
-          <section id="tickets" class="section" style="margin-top:28px">
-            <div class="section-title"><h2>Tickets</h2><span class="muted small">Últimos 10</span></div>
-            <div class="card">
-              ${rows
-                ? '<div class="table-wrap"><table><thead><tr><th>Canal</th><th>Usuario</th><th>Estado</th><th>Escalado</th><th>Creado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'
-                : '<p class="muted">Todavía no hay tickets registrados.</p>'}
-            </div>
+          <section id="tickets" class="section" style="margin-top:22px">
+            <div class="section-head"><div><span class="pill">Tickets</span><h2>Conversaciones recientes.</h2><p>Últimos 10 tickets registrados.</p></div><span class="pill">\${stats.openTickets} abiertos</span></div>
+            <div class="panel-card">\${rows ? '<div class="table-wrap"><table><thead><tr><th>Canal</th><th>Usuario</th><th>Estado</th><th>Escalado</th><th>Creado</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<div class="empty"><div class="feature-icon">▣</div><h3>No hay tickets todavía</h3><p>Abre un ticket en Discord para verlo aquí.</p></div>'}</div>
           </section>
 
-          <form method="post" action="/api/servers/${encodeURIComponent(guild.id)}">
-            <section id="ai" class="section" style="margin-top:28px">
-              <div class="section-title"><h2>IA</h2><span class="pill">Gemini · ${escapeHtml(config.aiModel,80)}</span></div>
-              <div class="card">
-                <div class="notice">
-                  🌍 El agente detecta automáticamente el idioma del cliente y mantiene el idioma durante la conversación.
-                  La IA utiliza la Knowledge Base de este servidor como fuente prioritaria.
+          <section id="staff" class="section" style="margin-top:22px">
+            <div class="section-head"><div><span class="pill">Configuración</span><h2>Personaliza tu servidor.</h2><p>La interfaz sigue la estructura del panel del mockup.</p></div></div>
+            <form method="post" action="/api/servers/\${encodeURIComponent(guild.id)}">
+              <div class="form-section">
+                <div class="tabbar" role="tablist">
+                  <button class="tab-btn active" type="button" data-tab="general">General</button>
+                  <button class="tab-btn" type="button" data-tab="tickets-tab">Tickets</button>
+                  <button class="tab-btn" type="button" data-tab="ai-tab">IA</button>
+                  <button class="tab-btn" type="button" data-tab="messages-tab">Mensajes</button>
+                  <button class="tab-btn" type="button" data-tab="advanced-tab">Avanzado</button>
                 </div>
-                <div class="grid" style="margin-top:16px">
-                  <div class="card" style="margin-top:0"><div class="kpi">🌐</div><h3>Multilingüe</h3><p class="muted">Detecta y mantiene el idioma del cliente.</p></div>
-                  <div class="card" style="margin-top:0"><div class="kpi">🧠</div><h3>Contexto</h3><p class="muted">Usa el historial persistente del ticket.</p></div>
-                  <div class="card" style="margin-top:0"><div class="kpi">📚</div><h3>Knowledge Base</h3><p class="muted">${String(cfg.knowledge || "").length} caracteres configurados.</p></div>
+
+                <div class="tab-panel active" id="tab-general"><h3>General</h3><div class="sub">Resumen rápido de la configuración del bot.</div>
+                  <div class="grid">
+                    <div class="card"><div class="feature-icon">◉</div><h3>Bot conectado</h3><p>\${escapeHtml(guild.name,100)} está operativo y listo para recibir tickets.</p></div>
+                    <div class="card"><div class="feature-icon">✦</div><h3>Modelo IA</h3><p>\${escapeHtml(config.aiModel,80)} · idioma automático.</p></div>
+                    <div class="card"><div class="feature-icon">📚</div><h3>Knowledge Base</h3><p>\${String(cfg.knowledge || "").length.toLocaleString("es-ES")} caracteres configurados.</p></div>
+                  </div>
                 </div>
+
+                <div class="tab-panel" id="tab-tickets-tab"><h3>Sistema de tickets</h3><div class="sub">Configura dónde se crean y quién recibe las escaladas.</div>
+                  <div class="form-grid">
+                    <div class="field"><label>Categoría de tickets</label><select name="ticketCategoryId"><option value="">Sin categoría específica</option>\${categories}</select><div class="help">Los nuevos tickets se crearán dentro de esta categoría.</div></div>
+                    <div class="field"><label>Rol del staff</label><select name="staffRoleId"><option value="">Detección automática</option>\${roles}</select><div class="help">Este rol se prioriza para atención humana.</div></div>
+                  </div>
+                </div>
+
+                <div class="tab-panel" id="tab-ai-tab"><h3>Inteligencia Artificial</h3><div class="sub">Enseña al agente cómo responder en tu servidor.</div>
+                  <div class="notice">✦ <strong>Gemini \${escapeHtml(config.aiModel,80)}</strong> · El agente usa el historial persistente y la Knowledge Base como contexto prioritario.</div>
+                  <label style="margin-top:16px">Knowledge Base</label>
+                  <textarea name="knowledge" maxlength="100000">\${escapeHtml(cfg.knowledge,100000)}</textarea>
+                  <div class="help">Límite del plan \${escapeHtml(definition.name,40)}: \${formatLimit(definition.knowledgeChars,"caracteres")}.</div>
+                </div>
+
+                <div class="tab-panel" id="tab-messages-tab"><h3>Mensajes</h3><div class="sub">Texto que verá el usuario cuando abra un ticket.</div>
+                  <label>Mensaje de bienvenida</label>
+                  <textarea name="welcomeText" style="min-height:150px">\${escapeHtml(cfg.welcomeText,1000)}</textarea>
+                </div>
+
+                <div class="tab-panel" id="tab-advanced-tab"><h3>Avanzado</h3><div class="sub">Configuración de escalado y responsable humano.</div>
+                  <label>Founder ID / responsable de escaladas</label>
+                  <input name="founderId" value="\${escapeHtml(cfg.founderId,100)}" placeholder="ID de Discord">
+                  <div class="help">Recibe los casos que requieren intervención humana.</div>
+                </div>
+
+                <div class="sticky-save"><button class="btn" type="submit">💾 Guardar cambios</button></div>
               </div>
-            </section>
-
-            <section id="staff" class="section" style="margin-top:28px">
-              <div class="section-title"><h2>Staff y tickets</h2><span class="muted small">Configuración por servidor</span></div>
-              <div class="card">
-                <div class="form-grid">
-                  <div class="field">
-                    <label>Founder ID</label>
-                    <input name="founderId" value="${escapeHtml(cfg.founderId,100)}" placeholder="ID de Discord">
-                    <div class="help">Persona que recibe las escaladas y casos que requieren atención humana.</div>
-                  </div>
-                  <div class="field">
-                    <label>Staff Role</label>
-                    <select name="staffRoleId">
-                      <option value="">Usar detección automática</option>
-                      ${roles}
-                    </select>
-                  </div>
-                  <div class="field">
-                    <label>Categoría de tickets</label>
-                    <select name="ticketCategoryId">
-                      <option value="">Sin categoría específica</option>
-                      ${categories}
-                    </select>
-                  </div>
-                  <div class="field">
-                    <label>Estado</label>
-                    <input value="🟢 Bot conectado en este servidor" disabled>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section id="billing" class="section" style="margin-top:28px">
-              <div class="section-title"><h2>Plan y facturación</h2><span class="muted small">Estado actual del servidor</span></div>
-              <div class="card">
-                <div class="toolbar">
-                  <div>
-                    <span class="pill">${escapeHtml(String(plan.plan).toUpperCase(),20)}</span>
-                    <h3 style="margin-top:10px">Plan ${escapeHtml(String(plan.plan),20)}</h3>
-                    <p class="muted">Estado: ${escapeHtml(plan.status,30)} · Los planes y cobros se aplicarán por servidor.</p>
-                  </div>
-                  <a class="btn" href="/pricing?guild=${encodeURIComponent(guild.id)}">Gestionar plan</a>
-                </div>
-              </div>
-            </section>
-
-            <section id="knowledge" class="section" style="margin-top:28px">
-              <div class="section-title"><h2>Knowledge Base</h2><span class="muted small">Reglas y documentación del servidor</span></div>
-              <div class="card">
-                <label>Mensaje de bienvenida</label>
-                <textarea name="welcomeText" style="min-height:110px">${escapeHtml(cfg.welcomeText,1000)}</textarea>
-                <div class="help">Aparece automáticamente cuando se abre un ticket.</div>
-
-                <label style="margin-top:18px">Base de conocimiento</label>
-                <textarea name="knowledge">${escapeHtml(cfg.knowledge,100000)}</textarea>
-                <div class="help">Límite del plan ${planDefinition.name}: ${formatLimit(planDefinition.knowledgeChars, "caracteres")}. Introduce reglas, FAQ, precios, procedimientos y documentación que la IA puede utilizar.</div>
-
-                <div class="toolbar" style="margin-top:16px">
-                  <a class="btn alt" href="/dashboard">← Volver</a>
-                  <button class="btn" type="submit">💾 Guardar cambios</button>
-                </div>
-              </div>
-            </section>
-          </form>
-
-          <section id="activation" class="section" style="margin-top:28px">
-            <div class="section-title">
-              <h2>Código de activación</h2>
-              <span class="muted small">Licencias entregadas por administración</span>
-            </div>
-            <div class="card">
-              ${activationNotice}
-              <p class="muted">Introduce un código Pro o Lifetime que te haya entregado el administrador. Cada código es de un solo uso y queda asociado a este servidor.</p>
-              <form method="post" action="/api/servers/${encodeURIComponent(guild.id)}/activation-code">
-                <div class="toolbar" style="align-items:stretch">
-                  <input name="code" maxlength="32" autocomplete="off" placeholder="PRO-ABCD-EFGH o LIFE-ABCD-EFGH" required style="flex:1;min-width:240px">
-                  <button class="btn" type="submit">🔐 Activar código</button>
-                </div>
-              </form>
-              <div class="help" style="margin-top:10px">La activación por código es independiente de Stripe. Un servidor con un plan activo no puede volver a activar otro código.</div>
-            </div>
+            </form>
+            <script>
+              document.querySelectorAll(".tab-btn").forEach(function(btn){
+                btn.addEventListener("click",function(){
+                  document.querySelectorAll(".tab-btn").forEach(function(x){x.classList.remove("active")});
+                  document.querySelectorAll(".tab-panel").forEach(function(x){x.classList.remove("active")});
+                  btn.classList.add("active");
+                  var panel=document.getElementById("tab-"+btn.dataset.tab);
+                  if(panel) panel.classList.add("active");
+                });
+              });
+            </script>
           </section>
+
+          <section id="ai" class="section" style="margin-top:22px">
+            <div class="section-head"><div><span class="pill">IA</span><h2>Estado del agente.</h2><p>Uso, contexto y escalado humano.</p></div></div>
+            <div class="two-col"><div class="panel-card"><h3>Respuestas IA este mes</h3><div class="sub">\${usage.aiResponses.toLocaleString("es-ES")} de \${definition.aiRepliesPerMonth.toLocaleString("es-ES")}</div><div class="progress" style="margin-top:14px"><span style="width:\${aiPct}%"></span></div><div class="help">\${aiPct}% utilizado</div></div><div class="panel-card"><h3>Escalado humano</h3><div class="sub">\${stats.escalatedTickets} ticket(s) escalados</div><div class="kpi" style="margin-top:12px">\${stats.escalatedTickets}</div></div></div>
+          </section>
+
+          <section id="knowledge" class="section" style="margin-top:22px"><div class="section-head"><div><span class="pill">Knowledge Base</span><h2>La memoria del servidor.</h2><p>El contenido se edita desde la pestaña IA.</p></div><span class="badge muted">\${String(cfg.knowledge || "").length.toLocaleString("es-ES")} caracteres</span></div><div class="panel-card"><p class="muted">La IA utiliza estas reglas, FAQ y procedimientos como fuente prioritaria de contexto.</p></div></section>
+
+          <section id="billing" class="section" style="margin-top:22px"><div class="section-head"><div><span class="pill">Facturación</span><h2>Tu plan actual.</h2><p>Gestiona Stripe y límites desde una pantalla.</p></div></div><div class="panel-card"><div class="toolbar"><div><h3>\${escapeHtml(definition.name,40)} · \${escapeHtml(definition.price,20)}</h3><div class="sub">\${escapeHtml(definition.billing,60)} · \${formatLimit(definition.ticketsPerMonth,"tickets/mes")} · \${formatLimit(definition.aiRepliesPerMonth,"respuestas IA/mes")}</div></div><a class="btn" href="/pricing?guild=\${encodeURIComponent(guild.id)}">Gestionar plan</a></div><div class="grid" style="margin-top:15px"><div class="card"><div class="stat-label">Tickets</div><div class="kpi" style="font-size:28px">\${usage.ticketsCreated}/\${definition.ticketsPerMonth}</div><div class="progress" style="margin-top:9px"><span style="width:\${ticketPct}%"></span></div></div><div class="card"><div class="stat-label">Respuestas IA</div><div class="kpi" style="font-size:28px">\${usage.aiResponses}/\${definition.aiRepliesPerMonth}</div><div class="progress" style="margin-top:9px"><span style="width:\${aiPct}%"></span></div></div></div></div></section>
+
+          <section id="activation" class="section" style="margin-top:22px"><div class="section-head"><div><span class="pill">Licencia</span><h2>Código de activación.</h2><p>Activa Pro o Lifetime sin pasar por Checkout.</p></div></div><div class="panel-card">\${activationNotice}<form method="post" action="/api/servers/\${encodeURIComponent(guild.id)}/activation-code"><div class="code-box"><input name="code" maxlength="32" autocomplete="off" placeholder="PRO-ABCD-EFGH o LIFE-ABCD-EFGH" required><button class="btn" type="submit">🔐 Activar</button></div></form><div class="help" style="margin-top:9px">Cada código es de un solo uso y queda asociado a este servidor.</div></div></section>
         </main>
       </div>
-    `, session.user));
+    \`, session.user));
   } catch (error) {
     console.error("Dashboard server error:", error);
-    res.status(500).send(htmlShell("Error",
-      '<div class="card"><h2>⚠️ No se pudo cargar el servidor</h2><p class="error">'+escapeHtml(error.message,1000)+'</p><a class="btn alt" href="/dashboard">Volver</a></div>'
-    ));
+    res.status(500).send(htmlShell("Error", '<div class="card"><h2>⚠️ No se pudo cargar el servidor</h2><p class="error">' + escapeHtml(error.message,1000) + '</p><a class="btn alt" href="/dashboard">Volver</a></div>'));
   }
 });
+
 
 app.post("/api/servers/:guildId", rateLimit("server-config", 30, 5 * 60 * 1000), async (req, res) => {
   try {
