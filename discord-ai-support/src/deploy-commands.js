@@ -7,8 +7,8 @@ const {
 
 const config = require("./config");
 
-if (!config.token || !config.clientId || !config.guildId) {
-  throw new Error("Faltan DISCORD_TOKEN, CLIENT_ID o GUILD_ID en .env");
+if (!config.token || !config.clientId) {
+  throw new Error("Faltan DISCORD_TOKEN o CLIENT_ID en .env");
 }
 
 const commands = [
@@ -25,10 +25,10 @@ const rest = new REST({ version: "10" }).setToken(config.token);
   try {
     console.log("Registrando comandos slash...");
     await rest.put(
-      Routes.applicationGuildCommands(config.clientId, config.guildId),
+      Routes.applicationCommands(config.clientId),
       { body: commands }
     );
-    console.log("Comando /panel registrado correctamente.");
+    console.log("Comando /panel global registrado correctamente.");
   } catch (error) {
     console.error("Error registrando comandos:", error);
     process.exitCode = 1;
