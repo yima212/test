@@ -340,6 +340,27 @@ function htmlShell(title, body, user = null) {
 .type-card{display:flex;align-items:center;gap:20px}.type-donut{width:150px;height:150px;border-radius:50%;position:relative;flex:0 0 auto}.type-donut:after{content:"";position:absolute;inset:28px;border-radius:50%;background:#10101a;border:1px solid rgba(255,255,255,.05)}.type-legend{display:grid;gap:11px;width:100%}.type-legend-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#c5c7d5}.type-key{display:inline-flex;align-items:center}.type-swatch{width:8px;height:8px;border-radius:50%;margin-right:8px;background:#6d5dfc}.type-legend-row:nth-child(2) .type-swatch{background:#44d8ff}.type-legend-row:nth-child(3) .type-swatch{background:#ffbf5f}.type-legend-row:nth-child(4) .type-swatch{background:#66697c}
 @media(max-width:980px){.hero-reference .hero-grid{grid-template-columns:1fr}.hero-art{min-height:430px}.art-badges{display:none}.ref-stats{grid-template-columns:1fr 1fr}.pricing-ref{grid-template-columns:1fr}.ticket-demo{grid-template-columns:1fr}.ticket-demo-side{display:none}}
 @media(max-width:680px){.hero-reference .hero-copy h1{font-size:45px}.robot-wrap{transform:scale(.88)}.ref-stats{grid-template-columns:1fr 1fr}.ref-stat{padding:14px}.ticket-demo{min-height:460px}.hero-reference .hero-copy p{font-size:16px}}
+
+/* Final reference tuning */
+.hero-reference{padding:54px 0 18px;min-height:500px}
+.hero-reference .hero-grid{grid-template-columns:minmax(0,1.02fr) minmax(390px,.98fr);gap:18px}
+.hero-reference .hero-copy h1{font-size:clamp(48px,5.3vw,72px);line-height:.91;margin:14px 0 14px}
+.hero-reference .hero-copy p{font-size:16px;line-height:1.55;max-width:640px}
+.hero-reference .hero-trust-grid{margin-top:15px;max-width:560px}
+.hero-reference .hero-actions{margin-top:20px}
+.hero-art{min-height:420px}
+.robot-wrap{transform:scale(.88)}
+.hero-art .art-glow{width:340px;height:340px}
+.art-badges .b1{top:55px}.art-badges .b2{top:105px}.art-badges .b3{bottom:92px}.art-badges .b4{bottom:38px}
+.ref-stats{margin-top:8px}
+.ticket-demo{min-height:455px}
+.ticket-demo-messages{min-height:315px}
+.ticket-composer{display:flex;gap:8px;padding:10px 16px;border-top:1px solid rgba(255,255,255,.06);background:#0d0e14}
+.ticket-composer input{flex:1;height:38px;border-radius:10px;background:#10121a;border:1px solid rgba(255,255,255,.07);padding:0 12px;color:#777b8d;font-size:11px}
+.ticket-composer button{width:38px;height:38px;border-radius:10px;border:1px solid rgba(109,93,252,.25);background:rgba(109,93,252,.14);color:#e8e6ff}
+.pricing-ref .price-card{min-height:400px}
+@media(max-width:980px){.hero-reference{padding-top:38px}.hero-reference .hero-grid{grid-template-columns:1fr}.hero-art{min-height:390px}.robot-wrap{transform:scale(.8)}}
+@media(max-width:680px){.hero-reference{padding-top:34px}.hero-reference .hero-copy h1{font-size:44px}.hero-reference .hero-copy p{font-size:15px}.hero-art{min-height:340px}.robot-wrap{transform:scale(.68)}.pricing-ref .price-card{min-height:380px}}
 </style>
 </head>
 <body><div class="wrap">
@@ -468,18 +489,18 @@ app.get("/", async (req, res) => {
   res.send(htmlShell("AI Support", `
     <section class="hero hero-reference"><div class="hero-grid">
       <div class="hero-copy">
-        <div class="eyebrow"><span class="eyebrow-dot"></span>Discord support · powered by AI</div>
+        <div class="hero-trust-grid" style="margin-top:0;margin-bottom:8px"><span class="mock-badge"><span class="dot"></span>#1 Discord Support Bot</span><span class="mock-badge"><span class="dot"></span>Powered by Gemini AI</span></div><div class="eyebrow"><span class="eyebrow-dot"></span>Discord support · powered by AI</div>
         <h1>Automatiza el soporte de tu servidor con <span class="gradient-text">Inteligencia Artificial</span>.</h1>
         <p>Responde preguntas, gestiona tickets y ahorra tiempo. Todo en uno, rápido y fácil de configurar.</p>
         <div class="hero-actions"><a class="btn" href="/auth/discord">🚀 Invitar al bot</a><a class="btn alt" href="#pricing">Ver precios</a></div>
-        <div class="hero-trust-grid"><span class="mock-badge"><span class="dot"></span>Tickets automáticos</span><span class="mock-badge"><span class="dot"></span>Powered by Gemini AI</span><span class="mock-badge"><span class="dot"></span>Multilingüe</span><span class="mock-badge"><span class="dot"></span>Escalado a staff</span><span class="mock-badge"><span class="dot"></span>Fácil de configurar</span></div>
+        <div class="hero-trust-grid"><span class="mock-badge"><span class="dot"></span>Tickets automáticos</span><span class="mock-badge"><span class="dot"></span>Multilingüe</span><span class="mock-badge"><span class="dot"></span>Escalado a staff</span><span class="mock-badge"><span class="dot"></span>Fácil de configurar</span></div>
       </div>
       <div class="hero-art"><div class="art-glow"></div>
         <div class="robot-wrap"><div class="robot-halo"></div><div class="robot-antenna"></div><div class="robot-head"><span class="robot-eye left"></span><span class="robot-eye right"></span><span class="robot-mouth"></span></div><div class="robot-body"><span class="robot-panel"></span></div><span class="robot-arm left"></span><span class="robot-arm right"></span></div>
         <div class="art-badges"><span class="mock-badge b1">✦ IA con Gemini</span><span class="mock-badge b2">🌍 Multilenguaje</span><span class="mock-badge b3">🛎️ Escalado a staff</span><span class="mock-badge b4">⚙️ Fácil de configurar</span></div>
       </div>
     </div></section>
-    <section class="section-block"><div class="ref-stats"><div class="ref-stat"><strong>+2.000</strong><span>Servidores</span></div><div class="ref-stat"><strong>24/7</strong><span>Asistencia automática</span></div><div class="ref-stat"><strong>🌍</strong><span>Multilingüe</span></div><div class="ref-stat"><strong>⚡</strong><span>Escalado a staff</span></div></div></section>
+    <section class="section-block"><div class="ref-stats"><div class="ref-stat"><strong>+2.000</strong><span>Servidores</span></div><div class="ref-stat"><strong>99.9%</strong><span>Uptime</span></div><div class="ref-stat"><strong>Multilingüe</strong><span>ES · FR · AR · …</span></div><div class="ref-stat"><strong>24/7</strong><span>Asistencia con IA</span></div></div></section>
     <section class="section-block" id="features"><div class="section-head"><div><span class="pill">Funciones</span><h2>Todo en un mismo panel.</h2><p>Soporte automatizado con control para tu equipo.</p></div></div>
       <div class="grid"><article class="card feature-card"><div class="feature-icon">🎫</div><h3>Tickets automáticos</h3><p>Canales privados y gestión organizada de cada conversación.</p></article><article class="card feature-card"><div class="feature-icon">✦</div><h3>IA con Gemini</h3><p>Respuestas contextualizadas usando historial y Knowledge Base.</p></article><article class="card feature-card"><div class="feature-icon">🌍</div><h3>Multilingüe</h3><p>Detecta el idioma y mantiene la conversación.</p></article><article class="card feature-card"><div class="feature-icon">🛎️</div><h3>Escalado a staff</h3><p>Entrega el contexto al equipo humano cuando sea necesario.</p></article><article class="card feature-card"><div class="feature-icon">📚</div><h3>Knowledge Base</h3><p>Reglas, FAQ y procedimientos específicos de tu servidor.</p></article><article class="card feature-card"><div class="feature-icon">📊</div><h3>Dashboard</h3><p>Métricas, planes y configuración desde un solo lugar.</p></article></div>
     </section>
@@ -489,12 +510,12 @@ app.get("/", async (req, res) => {
         <div class="discord-msg"><div class="discord-avatar">AI</div><div><div class="discord-bubble bot"><b>AI Support</b> <span style="color:#8e82ff">APP</span><br>¡Hola! 👋 Soy el asistente de soporte. ¿En qué puedo ayudarte?<div class="discord-actions"><span class="discord-chip">👍 Hablar con un humano</span><span class="discord-chip close">✖ Cerrar ticket</span></div></div></div></div>
         <div class="discord-msg"><div class="discord-avatar">U</div><div><div class="discord-bubble"><b>Usuario</b><br>¿Cómo puedo configurar el bot?</div></div></div>
         <div class="discord-msg"><div class="discord-avatar">AI</div><div><div class="discord-bubble bot"><b>AI Support</b><br>Usa <b>/panel</b> o abre el dashboard web para configurar tickets, staff y Knowledge Base.</div></div></div>
-      </div></div></div>
+      </div><div class="ticket-composer"><input readonly value="Escribe un mensaje a #ticket-1234…"><button type="button">➤</button></div></div></div>
     </section>
     <section class="section-block" id="pricing"><div class="section-head"><div><span class="pill">Precios</span><h2>Planes simples, para cualquier comunidad.</h2><p>Elige el plan que mejor se adapte a tu servidor.</p></div></div><div class="grid pricing-ref">${plans}</div></section>
     <section class="section-block" id="docs"><div class="section-head"><div><span class="pill">Cómo funciona</span><h2>Del servidor vacío al soporte activo.</h2><p>Conecta, configura y automatiza.</p></div></div><div class="grid"><article class="card step-card"><div class="step-number">01</div><h3>Conecta</h3><p>Inicia sesión con Discord y añade AI Support.</p></article><article class="card step-card"><div class="step-number">02</div><h3>Configura</h3><p>Elige categoría, staff, mensajes y Knowledge Base.</p></article><article class="card step-card"><div class="step-number">03</div><h3>Automatiza</h3><p>La IA responde y escala los casos que requieren una persona.</p></article></div></section>
     <section class="section-block" id="faq"><div class="section-head"><div><span class="pill">FAQ</span><h2>Preguntas frecuentes.</h2></div></div><div class="grid"><article class="card"><h3>¿La IA usa mis reglas?</h3><p>Sí. La Knowledge Base del servidor forma parte del contexto de las respuestas.</p></article><article class="card"><h3>¿Puedo hablar con un humano?</h3><p>Sí. El ticket puede escalarse al fundador o al staff configurado.</p></article><article class="card"><h3>¿Los planes son por servidor?</h3><p>Sí. Cada servidor tiene su propia configuración, uso y plan.</p></article></div></section>
-    <section class="section-block"><div class="card" style="padding:28px"><div class="section-head" style="margin:0"><div><span class="pill">Ready</span><h2>Empieza en minutos.</h2><p>Conecta Discord y prueba tu primer ticket.</p></div><a class="btn" href="/auth/discord">Entrar con Discord</a></div></div></section>
+    
   `));
 });
 
