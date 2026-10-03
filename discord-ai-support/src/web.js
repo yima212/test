@@ -16,7 +16,12 @@ const {
   cleanupExpiredSessions,
   getGuildPlan,
   saveGuildSubscription,
-  getGuildUsage
+  getGuildUsage,
+  createActivationCodes,
+  redeemActivationCode,
+  disableActivationCode,
+  listActivationCodes,
+  getActivationCodeStats
 } = require("./db");
 
 const {
@@ -115,6 +120,25 @@ function discordIconUrl(guild) {
   return `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=128`;
 }
 
+function isFounder(session) {
+  return Boolean(
+    session?.user?.id &&
+    config.founderId &&
+    session.user.id === config.founderId
+  );
+}
+
+function activationReasonMessage(reason) {
+  const messages = {
+    invalid: "El código no existe o no es válido.",
+    used: "Ese código ya fue utilizado.",
+    disabled: "Ese código está desactivado.",
+    expired: "Ese código ha caducado.",
+    plan_active: "Este servidor ya tiene un plan activo."
+  };
+  return messages[reason] || "No se pudo activar el código.";
+}
+
 function htmlShell(title, body, user = null) {
   return `<!doctype html>
 <html lang="es">
@@ -202,7 +226,9 @@ tr:last-child td{border-bottom:0}
 <div class="wrap">
 <div class="nav">
   <a class="brand" href="/dashboard"><span class="brand-dot"></span>AI SUPPORT</a>
-  ${user ? '<div class="userbar"><div class="avatar">'+escapeHtml((user.username || "?").slice(0,1).toUpperCase(),1)+'</div><span class="muted small">'+escapeHtml(user.username,80)+'</span><a class="btn alt" href="/logout">Salir</a></div>' : ''}
+  ${user ? '<div class="userbar"><div class="avatar">'+escapeHtml((user.username || "?").slice(0,1).toUpperCase(),1)+'</div><span class="muted small">'+escapeHtml(user.username,80)+'</span>' +
+    (isFounder({ user }) ? '<a class="btn alt" href="/admin">Admin</a>' : '') +
+    '<a class="btn alt" href="/logout">Salir</a></div>' : ''}
 </div>
 ${body}
 <div class="footer">AI Support · Discord SaaS</div>
@@ -610,6 +636,231 @@ app.get("/servers/:guildId/install", async (req, res) => {
   res.redirect("https://discord.com/oauth2/authorize?" + params.toString());
 });
 
+
+app.get("/admin", async (req, res) => {
+  try {
+    const session = await currentSession(req);
+    if (!session) return res.redirect("/");
+    if (!isFounder(session)) return res.status(403).send(htmlShell("No autorizado",
+      '<div class="card"><h2>403 · No autorizado</h2><p class="muted">Este panel está reservado al administrador principal del SaaS.</p><a class="btn alt" href="/dashboard">Volver</a></div>',
+      session.user
+    ));
+
+    const [stats, codes] = await Promise.all([
+      getActivationCodeStats(),
+      listActivationCodes(100)
+    ]);
+
+    const generatedNotice = req.query.generated === "1"
+      ? '<div class="notice"><strong>✅ Lote generado.</strong> Los códigos se muestran solo en la pantalla de generación.</div>'
+      : "";
+    const disabledNotice = req.query.disabled === "1"
+      ? '<div class="notice"><strong>✅ Código desactivado.</strong></div>'
+      : req.query.disabled === "0"
+        ? '<div class="notice" style="border-color:#5b2532;background:#1a0f14;color:#fecdd3"><strong>⚠️ No se encontró un código disponible con ese valor.</strong></div>'
+        : "";
+
+    const rows = codes.map(code => {
+      const effectiveStatus = String(code.status || "").toLowerCase();
+      const statusClass =
+        effectiveStatus === "available" ? "success" :
+        effectiveStatus === "used" ? "muted" :
+        "warning";
+      const statusLabel =
+        effectiveStatus === "available" ? "Disponible" :
+        effectiveStatus === "used" ? "Usado" :
+        effectiveStatus === "expired" ? "Caducado" :
+        "Desactivado";
+      return \`<tr>
+        <td><strong>\${escapeHtml(code.code_hint,40)}••••</strong></td>
+        <td>\${escapeHtml(getPlanDefinition(normalizePlan(code.plan)).name,40)}</td>
+        <td><span class="badge \${statusClass}">\${escapeHtml(statusLabel,30)}</span></td>
+        <td>\${escapeHtml(formatDate(code.created_at),80)}</td>
+        <td>\${escapeHtml(formatDate(code.expires_at),80)}</td>
+        <td>\${code.redeemed_guild_id ? escapeHtml(code.redeemed_guild_id,80) : "—"}</td>
+      </tr>\`;
+    }).join("");
+
+    res.send(htmlShell("Admin · Códigos", \`
+      <div class="hero">
+        <span class="pill">🔐 Administración segura</span>
+        <h1>Licencias y códigos.</h1>
+        <p>Generación server-side de códigos de un solo uso. Solo tu cuenta de Discord, configurada como FOUNDER_USER_ID, puede acceder a este panel.</p>
+      </div>
+
+      \${generatedNotice}
+      \${disabledNotice}
+
+      <div class="grid">
+        <div class="card"><div class="kpi">\${stats.total}</div><div class="stat-label">Códigos totales</div></div>
+        <div class="card"><div class="kpi">\${stats.available}</div><div class="stat-label">Disponibles</div></div>
+        <div class="card"><div class="kpi">\${stats.used}</div><div class="stat-label">Usados</div></div>
+        <div class="card"><div class="kpi">\${stats.disabledOrExpired}</div><div class="stat-label">Desactivados/caducados</div></div>
+      </div>
+
+      <section class="section" style="margin-top:28px">
+        <div class="section-title"><h2>Generar lote</h2><span class="muted small">Máximo 100 por solicitud</span></div>
+        <div class="card">
+          <form method="post" action="/admin/activation-codes/generate">
+            <div class="form-grid">
+              <div class="field">
+                <label>Plan</label>
+                <select name="plan">
+                  <option value="pro">Pro · $6/mes</option>
+                  <option value="lifetime">Lifetime · $30</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Cantidad</label>
+                <select name="quantity">
+                  <option>1</option>
+                  <option>10</option>
+                  <option>50</option>
+                  <option>100</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label>Caducidad opcional</label>
+                <input type="datetime-local" name="expiresAt">
+                <div class="help">La fecha se valida en el servidor. La caducidad del código no revoca un plan que ya haya sido activado.</div>
+              </div>
+            </div>
+            <div class="toolbar" style="margin-top:16px">
+              <a class="btn alt" href="/dashboard">← Volver</a>
+              <button class="btn" type="submit">🪙 Generar códigos</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="section" style="margin-top:28px">
+        <div class="section-title"><h2>Invalidar código</h2><span class="muted small">Solo códigos disponibles</span></div>
+        <div class="card">
+          <form method="post" action="/admin/activation-codes/disable">
+            <div class="toolbar" style="align-items:stretch">
+              <input name="code" maxlength="32" autocomplete="off" placeholder="Pega aquí el código completo" required style="flex:1;min-width:240px">
+              <button class="btn danger" type="submit">Desactivar</button>
+            </div>
+          </form>
+          <div class="help" style="margin-top:10px">Los códigos completos no se almacenan en texto plano; después de salir de la pantalla de generación solo se conserva su hash y una referencia parcial.</div>
+        </div>
+      </section>
+
+      <section class="section" style="margin-top:28px">
+        <div class="section-title"><h2>Actividad</h2><span class="muted small">Últimos 100</span></div>
+        <div class="card">
+          \${rows
+            ? '<div class="table-wrap"><table><thead><tr><th>Código</th><th>Plan</th><th>Estado</th><th>Creado</th><th>Expira</th><th>Servidor usado</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
+            : '<p class="muted">Todavía no has generado códigos.</p>'}
+        </div>
+      </section>
+    \`, session.user));
+  } catch (error) {
+    console.error("Admin dashboard error:", error);
+    res.status(500).send(htmlShell("Error",
+      '<div class="card"><h2>⚠️ No se pudo cargar la administración</h2><p class="error">'+escapeHtml(error.message,1000)+'</p><a class="btn alt" href="/dashboard">Volver</a></div>'
+    ));
+  }
+});
+
+app.post("/admin/activation-codes/generate", async (req, res) => {
+  try {
+    const session = await currentSession(req);
+    if (!session) return res.redirect("/");
+    if (!isFounder(session)) return res.status(403).send("No autorizado.");
+
+    const plan = String(req.body?.plan || "").toLowerCase();
+    const quantity = Number(req.body?.quantity || 0);
+    const expiresAt = cleanText(req.body?.expiresAt, 80).trim() || null;
+
+    if (!["pro", "lifetime"].includes(plan)) {
+      return res.status(400).send("Plan no válido.");
+    }
+
+    const codes = await createActivationCodes({
+      plan,
+      quantity,
+      expiresAt,
+      createdByDiscordUserId: session.user.id
+    });
+
+    const codeText = codes.join("\\n");
+    const downloadHref = "data:text/plain;charset=utf-8," + encodeURIComponent(codeText);
+
+    res.send(htmlShell("Códigos generados", \`
+      <div class="hero">
+        <span class="pill">✅ Lote creado</span>
+        <h1>\${codes.length} códigos \${escapeHtml(getPlanDefinition(plan).name,40)}.</h1>
+        <p>Guárdalos ahora. Por seguridad, la aplicación no vuelve a mostrar los códigos completos después de esta pantalla.</p>
+      </div>
+      <div class="card">
+        <textarea id="generated-codes" readonly style="min-height:340px">\${escapeHtml(codeText,10000)}</textarea>
+        <div class="actions" style="margin-top:14px">
+          <button class="btn" type="button" onclick="navigator.clipboard.writeText(document.getElementById('generated-codes').value)">📋 Copiar todos</button>
+          <a class="btn alt" href="\${escapeHtml(downloadHref,20000)}" download="activation-codes-\${escapeHtml(plan,20)}.txt">⬇️ Descargar TXT</a>
+          <a class="btn alt" href="/admin?generated=1">← Administración</a>
+        </div>
+      </div>
+    \`, session.user));
+  } catch (error) {
+    console.error("Activation code generation error:", error);
+    res.status(400).send(htmlShell("Error",
+      '<div class="card"><h2>⚠️ No se pudieron generar los códigos</h2><p class="error">'+escapeHtml(error.message,1000)+'</p><a class="btn alt" href="/admin">Volver</a></div>',
+      (await currentSession(req))?.user || null
+    ));
+  }
+});
+
+app.post("/admin/activation-codes/disable", async (req, res) => {
+  try {
+    const session = await currentSession(req);
+    if (!session) return res.redirect("/");
+    if (!isFounder(session)) return res.status(403).send("No autorizado.");
+
+    const disabled = await disableActivationCode(req.body?.code);
+    return res.redirect("/admin?disabled=" + (disabled ? "1" : "0"));
+  } catch (error) {
+    console.error("Activation code disable error:", error);
+    res.status(500).send("No se pudo desactivar el código.");
+  }
+});
+
+app.post("/api/servers/:guildId/activation-code", async (req, res) => {
+  try {
+    const session = await currentSession(req);
+    if (!session) return res.status(401).send("Sesión requerida.");
+
+    const guild = session.guilds.find(g => g.id === req.params.guildId);
+    if (!guild || !client.guilds.cache.get(guild.id)) {
+      return res.status(403).send("No autorizado.");
+    }
+
+    const code = cleanText(req.body?.code, 32).trim();
+    if (!code) return res.redirect("/servers/" + encodeURIComponent(guild.id) + "?activation=invalid#activation");
+
+    const result = await redeemActivationCode({
+      code,
+      guildId: guild.id,
+      discordUserId: session.user.id
+    });
+
+    if (result.ok) {
+      return res.redirect(
+        "/servers/" + encodeURIComponent(guild.id) +
+        "?activation=success&plan=" + encodeURIComponent(result.plan) + "#activation"
+      );
+    }
+
+    return res.redirect(
+      "/servers/" + encodeURIComponent(guild.id) +
+      "?activation=" + encodeURIComponent(result.reason) + "#activation"
+    );
+  } catch (error) {
+    console.error("Activation code redeem route error:", error);
+    return res.redirect("/servers/" + encodeURIComponent(req.params.guildId) + "?activation=error#activation");
+  }
+});
+
 app.get("/dashboard", async (req, res) => {
   const session = await currentSession(req);
   if (!session) return res.redirect("/");
@@ -725,6 +976,7 @@ app.get("/servers/:guildId", async (req, res) => {
           <a href="#staff">👥 Staff</a>
           <a href="#knowledge">📚 Knowledge Base</a>
           <a href="#billing">💳 Plan</a>
+          <a href="#activation">🔑 Código</a>
         </aside>
 
         <main>
@@ -835,6 +1087,24 @@ app.get("/servers/:guildId", async (req, res) => {
               </div>
             </section>
           </form>
+
+          <section id="activation" class="section" style="margin-top:28px">
+            <div class="section-title">
+              <h2>Código de activación</h2>
+              <span class="muted small">Licencias entregadas por administración</span>
+            </div>
+            <div class="card">
+              ${activationNotice}
+              <p class="muted">Introduce un código Pro o Lifetime que te haya entregado el administrador. Cada código es de un solo uso y queda asociado a este servidor.</p>
+              <form method="post" action="/api/servers/${encodeURIComponent(guild.id)}/activation-code">
+                <div class="toolbar" style="align-items:stretch">
+                  <input name="code" maxlength="32" autocomplete="off" placeholder="PRO-ABCD-EFGH o LIFE-ABCD-EFGH" required style="flex:1;min-width:240px">
+                  <button class="btn" type="submit">🔐 Activar código</button>
+                </div>
+              </form>
+              <div class="help" style="margin-top:10px">La activación por código es independiente de Stripe. Un servidor con un plan activo no puede volver a activar otro código.</div>
+            </div>
+          </section>
         </main>
       </div>
     `, session.user));
