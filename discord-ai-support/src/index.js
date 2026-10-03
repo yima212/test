@@ -352,7 +352,7 @@ client.on("interactionCreate", async interaction => {
     const channel = await guild.channels.create({
       name: `ticket-${interaction.user.username}`.toLowerCase().slice(0, 90),
       type: ChannelType.GuildText,
-      parent: config.ticketCategoryId || undefined,
+      parent: guildConfig.ticketCategoryId || config.ticketCategoryId || undefined,
       topic: `ticket-owner:${interaction.user.id}`,
       permissionOverwrites
     });
