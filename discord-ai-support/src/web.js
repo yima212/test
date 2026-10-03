@@ -6,15 +6,19 @@ const {
   getGuildConfig,
   saveGuildConfig,
   getGuildDashboardStats,
-  getRecentGuildTickets
+  getRecentGuildTickets,
+  createDashboardSession,
+  getDashboardSession,
+  deleteDashboardSession,
+  createOAuthState,
+  consumeOAuthState,
+  cleanupExpiredSessions,
+  getGuildPlan
 } = require("./db");
 
 const app = express();
 app.use(express.json({ limit: "32kb" }));
 app.use(express.urlencoded({ extended: false, limit: "32kb" }));
-
-const sessions = new Map();
-const oauthStates = new Map();
 
 const DISCORD_API = "https://discord.com/api/v10";
 const BOT_PERMISSIONS = "93200";
@@ -41,13 +45,17 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
-function issueSession(user, guilds) {
+async function issueSession(user, guilds) {
   const token = crypto.randomBytes(32).toString("hex");
-  sessions.set(token, {
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+  await createDashboardSession({
+    token,
     user,
     guilds,
-    createdAt: Date.now()
+    expiresAt
   });
+
   return token;
 }
 
@@ -64,9 +72,9 @@ function parseCookies(header = "") {
   );
 }
 
-function currentSession(req) {
+async function currentSession(req) {
   const token = parseCookies(req.headers.cookie).dashboard_session;
-  return token ? sessions.get(token) : null;
+  return token ? getDashboardSession(token) : null;
 }
 
 function isManager(guild) {
@@ -190,7 +198,7 @@ app.get("/health", (_req, res) => {
   res.json({ ok: true, service: "discord-ai-support" });
 });
 
-app.get("/auth/discord", (_req, res) => {
+app.get("/auth/discord", async (_req, res) => {
   if (!config.discordClientSecret) {
     return res.status(503).send(htmlShell("Configuración pendiente",
       '<div class="card"><h2>Falta Discord OAuth</h2><p class="muted">Añade DISCORD_CLIENT_SECRET en Railway y vuelve a intentarlo.</p></div>'
@@ -198,8 +206,10 @@ app.get("/auth/discord", (_req, res) => {
   }
 
   const state = crypto.randomBytes(20).toString("hex");
-  oauthStates.set(state, Date.now());
-  setTimeout(() => oauthStates.delete(state), 10 * 60 * 1000);
+  await createOAuthState(
+    state,
+    new Date(Date.now() + 10 * 60 * 1000).toISOString()
+  );
 
   const params = new URLSearchParams({
     client_id: config.clientId,
@@ -215,10 +225,9 @@ app.get("/auth/discord", (_req, res) => {
 app.get("/auth/discord/callback", async (req, res) => {
   try {
     const { code, state } = req.query;
-    if (!code || !state || !oauthStates.has(state)) {
+    if (!code || !state || !(await consumeOAuthState(state))) {
       return res.status(400).send("Invalid OAuth state.");
     }
-    oauthStates.delete(state);
 
     const tokenBody = new URLSearchParams({
       client_id: config.clientId,
@@ -256,7 +265,7 @@ app.get("/auth/discord/callback", async (req, res) => {
       `[OAUTH] user=${user.username || user.id} guilds=${guildPayload.length} manageable=${guilds.length}`
     );
 
-    const sessionToken = issueSession(user, guilds);
+    const sessionToken = await issueSession(user, guilds);
     res.setHeader(
       "Set-Cookie",
       "dashboard_session=" + encodeURIComponent(sessionToken) + "; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=86400"
@@ -270,15 +279,15 @@ app.get("/auth/discord/callback", async (req, res) => {
   }
 });
 
-app.get("/logout", (req, res) => {
+app.get("/logout", async (req, res) => {
   const token = parseCookies(req.headers.cookie).dashboard_session;
-  if (token) sessions.delete(token);
+  if (token) await deleteDashboardSession(token);
   res.setHeader("Set-Cookie", "dashboard_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0");
   res.redirect("/");
 });
 
-app.get("/", (req, res) => {
-  const session = currentSession(req);
+app.get("/", async (req, res) => {
+  const session = await currentSession(req);
   if (session) return res.redirect("/dashboard");
 
   res.send(htmlShell("AI Support", `
@@ -299,8 +308,8 @@ app.get("/", (req, res) => {
   `));
 });
 
-app.get("/dashboard", (req, res) => {
-  const session = currentSession(req);
+app.get("/dashboard", async (req, res) => {
+  const session = await currentSession(req);
   if (!session) return res.redirect("/");
 
   const cards = session.guilds.map(guild => {
@@ -349,10 +358,11 @@ app.get("/servers/:guildId", async (req, res) => {
     const discordGuild = client.guilds.cache.get(guild.id);
     if (!discordGuild) return res.redirect("/dashboard");
 
-    const [cfg, stats, recentTickets] = await Promise.all([
+    const [cfg, stats, recentTickets, plan] = await Promise.all([
       getGuildConfig(guild.id),
       getGuildDashboardStats(guild.id),
-      getRecentGuildTickets(guild.id, 10)
+      getRecentGuildTickets(guild.id, 10),
+      getGuildPlan(guild.id)
     ]);
 
     const categories = discordGuild.channels.cache
@@ -419,6 +429,7 @@ app.get("/servers/:guildId", async (req, res) => {
               <div class="card"><div class="kpi">${stats.closedTickets}</div><div class="stat-label">Tickets cerrados</div></div>
               <div class="card"><div class="kpi">${stats.escalatedTickets}</div><div class="stat-label">Escalados a humano</div></div>
               <div class="card"><div class="kpi">${stats.totalMessages}</div><div class="stat-label">Mensajes procesados</div></div>
+              <div class="card"><div class="kpi">${escapeHtml(String(plan.plan).toUpperCase(),20)}</div><div class="stat-label">Plan actual · ${escapeHtml(plan.status,30)}</div></div>
             </div>
           </section>
 
@@ -509,7 +520,7 @@ app.get("/servers/:guildId", async (req, res) => {
 
 app.post("/api/servers/:guildId", async (req, res) => {
   try {
-    const session = currentSession(req);
+    const session = await currentSession(req);
     if (!session) return res.status(401).send("Sesión requerida.");
 
     const guild = session.guilds.find(g => g.id === req.params.guildId);
@@ -539,5 +550,11 @@ module.exports = {
     app.listen(config.port, "0.0.0.0", () => {
       console.log(`🌐 Dashboard: ${config.dashboardUrl}`);
     });
+
+    setInterval(() => {
+      cleanupExpiredSessions().catch(error => {
+        console.error("❌ Error limpiando sesiones expiradas:", error.message);
+      });
+    }, 15 * 60 * 1000).unref();
   }
 };
