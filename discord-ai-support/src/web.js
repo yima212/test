@@ -411,9 +411,9 @@ function htmlShell(title, body, user = null) {
 .robot-photo-stage{position:relative;width:410px;height:410px;display:flex;align-items:center;justify-content:center}
 .robot-photo-stage:before{content:"";position:absolute;width:335px;height:335px;border-radius:50%;background:radial-gradient(circle,rgba(103,95,255,.38),rgba(50,77,160,.16) 40%,transparent 72%);filter:blur(11px)}
 .robot-photo-stage:after{content:"";position:absolute;inset:40px;border-radius:50%;border:1px solid rgba(96,124,255,.30);box-shadow:0 0 75px rgba(79,93,255,.22),inset 0 0 55px rgba(80,100,255,.08);pointer-events:none}
-.reference-robot-photo{position:relative;z-index:2;width:360px;height:390px;object-fit:contain;object-position:center;filter:drop-shadow(0 30px 42px rgba(0,0,0,.42)) drop-shadow(0 0 35px rgba(80,100,255,.25))}
-@media(max-width:980px){.robot-photo-stage{width:360px;height:360px}.reference-robot-photo{width:320px;height:350px}}
-@media(max-width:680px){.robot-photo-stage{width:315px;height:320px}.reference-robot-photo{width:285px;height:305px}}
+.reference-robot-photo{position:relative;z-index:2;width:390px;height:410px;object-fit:cover;object-position:center;filter:drop-shadow(0 30px 42px rgba(0,0,0,.42)) drop-shadow(0 0 35px rgba(80,100,255,.25));-webkit-mask-image:radial-gradient(ellipse 66% 72% at 50% 48%,#000 52%,rgba(0,0,0,.96) 62%,rgba(0,0,0,.40) 73%,transparent 84%);mask-image:radial-gradient(ellipse 66% 72% at 50% 48%,#000 52%,rgba(0,0,0,.96) 62%,rgba(0,0,0,.40) 73%,transparent 84%)}
+@media(max-width:980px){.robot-photo-stage{width:360px;height:360px}.reference-robot-photo{width:340px;height:360px}}
+@media(max-width:680px){.robot-photo-stage{width:315px;height:320px}.reference-robot-photo{width:300px;height:320px}}
 </style>
 </head>
 <body class="${title === "AI Support" ? "landing-page" : ""}"><div class="wrap">
